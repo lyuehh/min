@@ -32,7 +32,7 @@ const legacyModules = [
   'js/searchbar/keywordSuggestionsPlugin.js',
   'js/readerview.js',
   'js/navbar/tabBar.js',
-  'js/taskOverlay/taskOverlay.js',
+  // 'js/taskOverlay/taskOverlay.js',
   'js/navbar/addTabButton.js',
   'js/navbar/goBackButton.js',
   'js/navbar/menuButton.js',

@@ -40,7 +40,7 @@ window.tabBar = {
     // editingValue: an optional string to show in the searchbar instead of the current URL
 
     webviews.requestPlaceholder('editMode')
-    taskOverlay.hide()
+    // taskOverlay.hide()
 
     var tabEl = tabBar.getTab(tabId)
     var webview = webviews.get(tabId)
@@ -287,9 +287,11 @@ window.tabBar = {
     var tab = tabs.get(tabId)
     var index = tabs.getIndex(tabId)
 
+    /*
     var tabEl = tabBar.createElement(tab)
     tabBar.container.insertBefore(tabEl, tabBar.container.childNodes[index])
     tabBar.tabElementMap[tabId] = tabEl
+    */
   },
   removeTab: function (tabId) {
     var tabEl = tabBar.getTab(tabId)

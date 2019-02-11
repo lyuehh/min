@@ -23,7 +23,7 @@ window.navigate = function (tabId, newURL) {
 
 function addTask () {
   tasks.setSelected(tasks.add())
-  taskOverlay.hide()
+  // taskOverlay.hide()
 
   tabBar.rerenderAll()
   addTab()

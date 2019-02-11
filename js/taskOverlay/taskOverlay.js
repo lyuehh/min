@@ -9,6 +9,10 @@ var addTaskButton = document.getElementById('add-task')
 var addTaskLabel = addTaskButton.querySelector('span')
 var taskOverlayNavbar = document.getElementById('task-overlay-navbar')
 
+if (!taskSwitcherButton) {
+  return;
+}
+
 taskSwitcherButton.title = l('viewTasks')
 addTaskLabel.textContent = l('newTask')
 

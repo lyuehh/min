@@ -82,7 +82,7 @@ registerCustomBang({
 
     // no task was specified, show all of the tasks
     if (!text) {
-      taskOverlay.show()
+      // taskOverlay.show()
       return
     }
 
@@ -105,7 +105,7 @@ registerCustomBang({
       return
     }
 
-    taskOverlay.show()
+    // taskOverlay.show()
 
     setTimeout(function () {
       browserUI.addTask()
@@ -149,12 +149,12 @@ registerCustomBang({
       newTask.tabs.add(currentTab)
     }
 
-    taskOverlay.show()
+    // taskOverlay.show()
     browserUI.switchToTask(newTask.id)
     browserUI.switchToTab(currentTab.id)
 
     setTimeout(function () {
-      taskOverlay.hide()
+      // taskOverlay.hide()
     }, 600)
   }
 })

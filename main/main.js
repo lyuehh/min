@@ -99,9 +99,11 @@ function createWindowWithBounds (bounds, shouldMaximize) {
     y: bounds.y,
     minWidth: 320,
     minHeight: 350,
-    titleBarStyle: 'hiddenInset',
+    // titleBarStyle: 'hiddenInset',
     icon: __dirname + '/icons/icon256.png',
-    frame: process.platform !== 'win32',
+    // frame: process.platform !== 'win32',
+    frame: false,
+    // titleBarStyle: 'hidden',
     backgroundColor: '#fff', // the value of this is ignored, but setting it seems to work around https://github.com/electron/electron/issues/10559
   })
 
@@ -175,6 +177,12 @@ function createWindowWithBounds (bounds, shouldMaximize) {
       e.preventDefault()
     }
   })
+
+  // 不工作
+  mainWindow.onbeforeunload = function(){
+    var answer = confirm('Do you really want to close the application?');
+    return answer
+  }
 
   registerFiltering() // register filtering for the default session
 

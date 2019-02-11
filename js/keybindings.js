@@ -155,9 +155,9 @@ ipc.on('addTask', function () {
   }
 
   browserUI.addTask()
-  taskOverlay.show()
+  // taskOverlay.show()
   setTimeout(function () {
-    taskOverlay.hide()
+    // taskOverlay.hide()
     tabBar.enterEditMode(tabs.getSelected())
   }, 600)
 })
@@ -300,7 +300,7 @@ settings.get('keyMap', function (keyMapSettings) {
   })
 
   defineShortcut({keys: 'esc'}, function (e) {
-    taskOverlay.hide()
+    // taskOverlay.hide()
     tabBar.leaveEditMode()
 
     // exit full screen mode
@@ -352,23 +352,23 @@ settings.get('keyMap', function (keyMapSettings) {
   var taskSwitchTimeout = null
 
   defineShortcut('switchToNextTask', function (d) {
-    taskOverlay.show()
+    // taskOverlay.show()
 
     const currentTaskIdx = tasks.indexOf(tasks.getSelected())
 
     const nextTask = tasks.byIndex(currentTaskIdx + 1) || tasks.byIndex(0)
     browserUI.switchToTask(nextTask.id)
 
-    taskOverlay.show()
+    // taskOverlay.show()
 
     clearInterval(taskSwitchTimeout)
     taskSwitchTimeout = setTimeout(function () {
-      taskOverlay.hide()
+      // taskOverlay.hide()
     }, 500)
   })
 
   defineShortcut('switchToPreviousTask', function (d) {
-    taskOverlay.show()
+    // taskOverlay.show()
 
     const currentTaskIdx = tasks.indexOf(tasks.getSelected()),
           taskCount = tasks.getLength()
@@ -376,11 +376,11 @@ settings.get('keyMap', function (keyMapSettings) {
     const previousTask = tasks.byIndex(currentTaskIdx - 1) || tasks.byIndex(tasks.getLength() - 1)
     browserUI.switchToTask(previousTask.id)
 
-    taskOverlay.show()
+    // taskOverlay.show()
 
     clearInterval(taskSwitchTimeout)
     taskSwitchTimeout = setTimeout(function () {
-      taskOverlay.hide()
+      // taskOverlay.hide()
     }, 500)
   })
 
@@ -394,11 +394,13 @@ settings.get('keyMap', function (keyMapSettings) {
   })
 
   defineShortcut('toggleTasks', function () {
+    /*
     if (taskOverlay.isShown) {
       taskOverlay.hide()
     } else {
       taskOverlay.show()
     }
+    */
   })
 
   var lastReload = 0
