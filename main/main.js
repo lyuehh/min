@@ -17,6 +17,11 @@ var mainMenu = null
 var isFocusMode = false
 var appIsReady = false
 
+if (process.platform === 'darwin' || process.platform === 'win32') {
+  // TODO enable for all platforms after upgrading to Electron 5.0
+  app.enableMixedSandbox()
+}
+
 const isFirstInstance = app.requestSingleInstanceLock()
 
 if (!isFirstInstance) {
@@ -479,6 +484,21 @@ function createAppMenu () {
       label: l('appMenuDeveloper'),
       submenu: [
         {
+          label: l('appMenuInspectPage'),
+          accelerator: (function () {
+            if (process.platform == 'darwin')
+              return 'Cmd+Alt+I'
+            else
+              return 'Ctrl+Shift+I'
+          })(),
+          click: function (item, window) {
+            sendIPCToWindow(window, 'inspectPage')
+          }
+        },
+        {
+          type: 'separator'
+        },
+        {
           label: l('appMenuReloadBrowser'),
           accelerator: undefined,
           click: function (item, focusedWindow) {
@@ -492,21 +512,6 @@ function createAppMenu () {
           label: l('appMenuInspectBrowser'),
           click: function (item, focusedWindow) {
             if (focusedWindow) focusedWindow.toggleDevTools()
-          }
-        },
-        {
-          type: 'separator'
-        },
-        {
-          label: l('appMenuInspectPage'),
-          accelerator: (function () {
-            if (process.platform == 'darwin')
-              return 'Cmd+Alt+I'
-            else
-              return 'Ctrl+Shift+I'
-          })(),
-          click: function (item, window) {
-            sendIPCToWindow(window, 'inspectPage')
           }
         }
       ]
@@ -626,7 +631,7 @@ function createAppMenu () {
       ]
     })
     // Window menu.
-    template[3].submenu.push({
+    template[5].submenu.push({
       type: 'separator'
     }, {
       label: l('appMenuBringToFront'),
