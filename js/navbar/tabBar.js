@@ -4,7 +4,7 @@ var searchbar = require('searchbar/searchbar.js')
 var urlParser = require('util/urlParser.js')
 
 var progressBar = require('navbar/progressBar.js')
-var bookmarkStar = require('navbar/bookmarkStar.js')
+// var bookmarkStar = require('navbar/bookmarkStar.js')
 
 var lastTabDeletion = 0 // TODO get rid of this
 
@@ -60,7 +60,7 @@ window.tabBar = {
       input.select()
     }
 
-    searchbar.show(input)
+    // searchbar.show(input)
 
     if (editingValue) {
       searchbar.showResults(editingValue, null)
@@ -109,7 +109,7 @@ window.tabBar = {
     }
 
     // update the star to reflect whether the page is bookmarked or not
-    bookmarkStar.update(tabId, tabBar.getTab(tabId).querySelector('.bookmarks-button'))
+    // bookmarkStar.update(tabId, tabBar.getTab(tabId).querySelector('.bookmarks-button'))
   },
   rerenderAll: function () {
     empty(tabBar.container)
@@ -141,7 +141,7 @@ window.tabBar = {
     input.value = url
 
     ec.appendChild(input)
-    ec.appendChild(bookmarkStar.create(data.id))
+    // ec.appendChild(bookmarkStar.create(data.id))
 
     tabEl.appendChild(ec)
 
@@ -156,6 +156,7 @@ window.tabBar = {
     var iconArea = document.createElement('span')
     iconArea.className = 'tab-icon-area'
 
+      /*
     var closeTabButton = document.createElement('i')
     closeTabButton.classList.add('tab-close-button')
     closeTabButton.classList.add('fa')
@@ -168,6 +169,7 @@ window.tabBar = {
     })
 
     iconArea.appendChild(closeTabButton)
+    */
 
     if (data.private) {
       var pbIcon = document.createElement('i')
@@ -248,7 +250,7 @@ window.tabBar = {
       if (tabs.getSelected() !== data.id) { // else switch to tab if it isn't focused
         browserUI.switchToTab(data.id)
       } else { // the tab is focused, edit tab instead
-        tabBar.enterEditMode(data.id)
+        // tabBar.enterEditMode(data.id)
       }
     })
 
