@@ -90,6 +90,7 @@ module.exports = function (grunt) {
           'xdg-utils'
         ]
       },
+      /*
       linux32: {
         options: {
           arch: 'i386'
@@ -97,6 +98,7 @@ module.exports = function (grunt) {
         src: 'dist/app/min-linux-ia32',
         dest: 'dist/app/linux'
       },
+      */
       linux64: {
         options: {
           arch: 'amd64'
