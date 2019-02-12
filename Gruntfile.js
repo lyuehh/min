@@ -54,7 +54,7 @@ module.exports = function (grunt) {
           electronVersion: electronVersion,
           appVersion: version,
           platform: 'linux',
-          arch: 'all',
+          arch: 'x64',
           ignore: ignoredDirs,
           prune: true,
           overwrite: true
