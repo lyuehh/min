@@ -18,8 +18,6 @@
     "chokidar": "^2.0.4",
     "decomment": "^0.9.0",
     "electron": "4.0.4",
-    "electron-installer-debian": "^1.1.0",
-    "electron-packager": "^13.0.1",
     "electron-renderify": "0.0.2",
     "grunt": "^1.0.1",
     "grunt-electron": "^9.0.1",
@@ -38,9 +36,7 @@
     "buildBrowser": "node ./scripts/buildBrowser.js",
     "buildPreload": "node ./scripts/buildPreload.js",
     "build": "npm run buildMain && npm run buildBrowser && npm run buildPreload",
-    "updateFilters": "node ./ext/filterLists/updateEasylist.js",
-    "pack": "electron-packager . --platform=linux --arch=x64",
-    "debian": "electron-installer-debian --src Min-linux-x64  --dest dist/ --arch amd64"
+    "updateFilters": "node ./ext/filterLists/updateEasylist.js"
   },
   "repository": {
     "type": "git",

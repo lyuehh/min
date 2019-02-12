@@ -29,9 +29,9 @@ window.sessionRestore = {
 
     try {
       // first run, show the tour
+        /*
       if (!savedStringData) {
         tasks.setSelected(tasks.add()) // create a new task
-
         var newTab = tasks.getSelected().tabs.add({
           url: 'https://minbrowser.github.io/min/tour'
         })
@@ -40,6 +40,7 @@ window.sessionRestore = {
         })
         return
       }
+      */
 
       console.log(savedStringData)
 
@@ -70,6 +71,7 @@ window.sessionRestore = {
 
       // if this isn't the first run, and the survey popup hasn't been shown yet, show it
 
+        /*
       if (shouldShowSurvey) {
         fetch('https://minbrowser.github.io/min/survey/survey.json').then(function (response) {
           return response.json()
@@ -89,6 +91,7 @@ window.sessionRestore = {
             }}, 200)
         })
       }
+      */
     } catch (e) {
       // an error occured while restoring the session data
 
@@ -104,7 +107,9 @@ window.sessionRestore = {
       // create a new tab with an explanation of what happened
       var newTask = tasks.add()
       var newSessionErrorTab = tasks.get(newTask).tabs.add({
-        url: 'file://' + __dirname + '/pages/sessionRestoreError/index.html?backupLoc=' + encodeURIComponent(backupSavePath)
+        url: 'https://data.questmobile.com.cn'
+        // url: 'https://data.questmobile.com.cn'
+        // url: 'file://' + __dirname + '/pages/sessionRestoreError/index.html?backupLoc=' + encodeURIComponent(backupSavePath)
       })
 
       browserUI.switchToTask(newTask)
