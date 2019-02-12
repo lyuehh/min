@@ -60,7 +60,7 @@ window.tabBar = {
       input.select()
     }
 
-    // searchbar.show(input)
+    searchbar.show(input)
 
     if (editingValue) {
       searchbar.showResults(editingValue, null)
@@ -148,7 +148,8 @@ window.tabBar = {
     var vc = document.createElement('div')
     vc.className = 'tab-view-contents'
 
-    vc.appendChild(readerView.getButton(data.id))
+    // 删除 阅读模式按钮
+    // vc.appendChild(readerView.getButton(data.id))
     vc.appendChild(progressBar.create())
 
     // icons
@@ -156,7 +157,9 @@ window.tabBar = {
     var iconArea = document.createElement('span')
     iconArea.className = 'tab-icon-area'
 
-      /*
+
+    // 移除 关闭标签按钮
+    /*
     var closeTabButton = document.createElement('i')
     closeTabButton.classList.add('tab-close-button')
     closeTabButton.classList.add('fa')
@@ -250,6 +253,7 @@ window.tabBar = {
       if (tabs.getSelected() !== data.id) { // else switch to tab if it isn't focused
         browserUI.switchToTab(data.id)
       } else { // the tab is focused, edit tab instead
+        // 阻止进入 edit mode
         // tabBar.enterEditMode(data.id)
       }
     })
@@ -289,11 +293,9 @@ window.tabBar = {
     var tab = tabs.get(tabId)
     var index = tabs.getIndex(tabId)
 
-    /*
     var tabEl = tabBar.createElement(tab)
     tabBar.container.insertBefore(tabEl, tabBar.container.childNodes[index])
     tabBar.tabElementMap[tabId] = tabEl
-    */
   },
   removeTab: function (tabId) {
     var tabEl = tabBar.getTab(tabId)
