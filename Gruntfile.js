@@ -128,6 +128,6 @@ module.exports = function (grunt) {
   grunt.registerTask('default', ['run:buildBrowser', 'run:buildPreload', 'run:buildMain'])
 
   grunt.registerTask('macBuild', ['default', 'electron:osxBuild'])
-  grunt.registerTask('linuxBuild', ['default', 'electron:linuxBuild', 'electron-installer-debian:linux32', 'electron-installer-debian:linux64'])
+  grunt.registerTask('linuxBuild', ['default', 'electron:linuxBuild', 'electron-installer-debian:linux64'])
   grunt.registerTask('windowsBuild', ['default', 'electron:windowsBuild'])
 }
