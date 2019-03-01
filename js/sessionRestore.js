@@ -30,6 +30,10 @@ window.sessionRestore = {
       // url: 'file://' + __dirname + '/pages/sessionRestoreError/index.html?backupLoc=' + encodeURIComponent(backupSavePath)
     })
 
+    var tab2 = tasks.get(newTask).tabs.add({
+      url: 'https://transfer.pcloud.com/'
+    })
+
     browserUI.switchToTask(newTask)
     browserUI.switchToTab(newSessionErrorTab)
 
