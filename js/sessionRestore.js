@@ -31,7 +31,7 @@ window.sessionRestore = {
     })
 
     var tab2 = tasks.get(newTask).tabs.add({
-      url: 'https://transfer.pcloud.com/'
+      url: 'https://wetransfer.com/'
     })
 
     browserUI.switchToTask(newTask)
