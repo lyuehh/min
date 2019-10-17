@@ -77,7 +77,6 @@ module.exports = function (grunt) {
         depends: [
           'gconf2',
           'gconf-service',
-          'gvfs-bin',
           'libc6',
           'libcap2',
           'libgtk2.0-0',
