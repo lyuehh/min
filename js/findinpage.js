@@ -1,3 +1,7 @@
+var webviews = require('webviews.js')
+var keybindings = require('keybindings.js')
+var PDFViewer = require('pdfViewer.js')
+
 var findinpage = {
   container: document.getElementById('findinpage-bar'),
   input: document.getElementById('findinpage-input'),
@@ -92,7 +96,7 @@ findinpage.next.addEventListener('click', function (e) {
   findinpage.input.focus()
 })
 
-webviews.bindEvent('found-in-page', function (e, data) {
+webviews.bindEvent('found-in-page', function (webview, tabId, e, data) {
   if (data.matches !== undefined) {
     var text
     if (data.matches === 1) {
@@ -104,3 +108,9 @@ webviews.bindEvent('found-in-page', function (e, data) {
     findinpage.counter.textContent = text.replace('%i', data.activeMatchOrdinal).replace('%t', data.matches)
   }
 })
+
+keybindings.defineShortcut('followLink', function () {
+  findinpage.end({ action: 'activateSelection' })
+})
+
+module.exports = findinpage

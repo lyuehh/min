@@ -4,7 +4,8 @@ window.sessionRestore = {
   save: function () {
     var data = {
       version: 2,
-      state: JSON.parse(JSON.stringify(tasks.getStringifyableState()))
+      state: JSON.parse(JSON.stringify(tasks.getStringifyableState())),
+      saveTime: Date.now()
     }
 
     // save all tabs that aren't private
@@ -63,8 +64,6 @@ window.sessionRestore = {
         return
       }
 
-      console.log(savedStringData)
-
       var data = JSON.parse(savedStringData)
 
       // the data isn't restorable
@@ -81,13 +80,25 @@ window.sessionRestore = {
         // restore the task item
         tasks.add(task)
       })
+      tasks.setSelected(data.state.selectedTask)
 
       // switch to the previously selected tasks
 
-      browserUI.switchToTask(data.state.selectedTask)
-
-      if (tasks.getSelected().tabs.isEmpty()) {
-        tabBar.enterEditMode(tasks.getSelected().tabs.getSelected())
+      if (tasks.getSelected().tabs.isEmpty() || (!data.saveTime || Date.now() - data.saveTime < 30000)) {
+        browserUI.switchToTask(data.state.selectedTask)
+        if (tasks.getSelected().tabs.isEmpty()) {
+          tabBar.enterEditMode(tasks.getSelected().tabs.getSelected())
+        }
+      } else {
+        window.createdNewTaskOnStartup = true
+        // try to reuse a previous empty task
+        var lastTask = tasks.byIndex(tasks.getLength() - 1)
+        if (lastTask && lastTask.tabs.isEmpty() && !lastTask.name) {
+          browserUI.switchToTask(lastTask.id)
+          tabBar.enterEditMode(lastTask.tabs.getSelected())
+        } else {
+          browserUI.addTask()
+        }
       }
 
       // if this isn't the first run, and the survey popup hasn't been shown yet, show it
@@ -99,7 +110,7 @@ window.sessionRestore = {
           setTimeout(function () {
             if (data.available && data.url) {
               if (tasks.getSelected().tabs.isEmpty()) {
-                navigate(tasks.getSelected().tabs.getSelected(), data.url)
+                browserUI.navigate(tasks.getSelected().tabs.getSelected(), data.url)
               } else {
                 var surveyTab = tasks.getSelected().tabs.add({
                   url: data.url
@@ -142,5 +153,7 @@ window.sessionRestore = {
 // TODO make this a preference
 
 sessionRestore.restore()
+
+tasks.on('tab-selected', sessionRestore.save)
 
 setInterval(sessionRestore.save, 12500)

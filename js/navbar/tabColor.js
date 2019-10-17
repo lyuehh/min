@@ -1,3 +1,6 @@
+var webviews = require('webviews.js')
+var settings = require('util/settings/settings.js')
+
 const colorExtractorImage = document.createElement('img')
 const colorExtractorCanvas = document.createElement('canvas')
 const colorExtractorContext = colorExtractorCanvas.getContext('2d')
@@ -9,6 +12,18 @@ const defaultColors = {
   lightMode: ['rgb(255, 255, 255)', 'black'],
   darkMode: ['rgb(40, 44, 52)', 'white']
 }
+
+function getHours () {
+  const date = new Date()
+  return date.getHours() + (date.getMinutes() / 60)
+}
+
+let hours = getHours()
+
+// we cache the hours so we don't have to query every time we change the color
+setInterval(function () {
+  hours = getHours()
+}, 5 * 60 * 1000)
 
 function getColorFromImage (image) {
   const w = colorExtractorImage.width
@@ -72,43 +87,17 @@ function getColorFromImage (image) {
     res[i] = parseInt(res[i])
   }
 
-  // dim the colors late at night or early in the morning, or when dark mode is enabled
-  let colorChange = 1
-  if (hours > 20) {
-    colorChange -= 0.015 * Math.pow(2.75, hours - 20)
-  } else if (hours < 6.5) {
-    colorChange -= -0.15 * Math.pow(1.36, hours) + 1.15
-  }
-
-  if (window.isDarkMode) {
-    colorChange = Math.min(colorChange, 0.58)
-  }
-
-  res[0] = Math.round(res[0] * colorChange)
-  res[1] = Math.round(res[1] * colorChange)
-  res[2] = Math.round(res[2] * colorChange)
-
-  let isLowContrast = false
-  // is this a color that won't change very much when lightened or darkened?
-  // TODO is lowContrast the best name for this?
-  if (res.filter(i => (i > 235 || i < 15)).length === 3) {
-    isLowContrast = true
-  }
-
-  return {color: res, isLowContrast}
+  return res
 }
 
-function getHours () {
-  const date = new Date()
-  return date.getHours() + (date.getMinutes() / 60)
+function getColorFromString (str) {
+  colorExtractorContext.clearRect(0, 0, 1, 1)
+  colorExtractorContext.fillStyle = str
+  colorExtractorContext.fillRect(0, 0, 1, 1)
+  let rgb = Array.from(colorExtractorContext.getImageData(0, 0, 1, 1).data).slice(0, 3)
+
+  return rgb
 }
-
-let hours = getHours()
-
-// we cache the hours so we don't have to query every time we change the color
-setInterval(function () {
-  hours = getHours()
-}, 5 * 60 * 1000)
 
 function getRGBString (c) {
   return 'rgb(' + c[0] + ',' + c[1] + ',' + c[2] + ')'
@@ -125,6 +114,37 @@ function getTextColor (bgColor) {
     return 'black'
   }
   return 'white'
+}
+
+function isLowContrast (color) {
+  // is this a color that won't change very much when lightened or darkened?
+  // TODO is lowContrast the best name for this?
+  return color.filter(i => (i > 235 || i < 15)).length === 3
+}
+
+function adjustColorForTheme (color) {
+  // dim the colors late at night or early in the morning, or when dark mode is enabled
+  let colorChange = 1
+  if (hours > 20) {
+    colorChange = 1.01 / (1 + 0.9 * Math.pow(Math.E, 1.5 * (hours - 22.75)))
+  } else if (hours < 6.5) {
+    colorChange = 1.04 / (1 + 0.9 * Math.pow(Math.E, -2 * (hours - 5)))
+  }
+
+  if (window.isDarkMode) {
+    colorChange = Math.min(colorChange, 0.6)
+  }
+
+  return [
+    Math.round(color[0] * colorChange),
+    Math.round(color[1] * colorChange),
+    Math.round(color[2] * colorChange)
+  ]
+}
+
+// https://stackoverflow.com/a/596243
+function getLuminance (c) {
+  return 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]
 }
 
 function setColor (bg, fg, isLowContrast) {
@@ -152,16 +172,57 @@ function setColor (bg, fg, isLowContrast) {
 }
 
 const tabColor = {
+  useSiteTheme: true,
   initialize: function () {
-    webviews.bindEvent('page-favicon-updated', function (e, favicons) {
-      const id = webviews.getTabFromContents(this)
-      tabColor.updateFromImage(favicons, id)
+    webviews.bindEvent('page-favicon-updated', function (webview, tabId, e, favicons) {
+      tabColor.updateFromImage(favicons, tabId)
+    })
+
+    webviews.bindEvent('did-change-theme-color', function (webview, tabId, e, color) {
+      tabColor.updateFromThemeColor(color, tabId)
+    })
+
+    webviews.bindEvent('did-navigate', function (webview, tabId, e) {
+      tabs.update(tabId, {
+        themeColor: null,
+        backgroundColor: null
+      })
     })
 
     // theme changes can affect the tab colors
     window.addEventListener('themechange', function (e) {
-      tabColor.refresh()
+      tabColor.updateColors()
     })
+
+    settings.listen('siteTheme', function (value) {
+      if (value !== undefined) {
+        tabColor.useSiteTheme = value
+      }
+    })
+
+    tasks.on('tab-selected', this.updateColors)
+  },
+  updateFromThemeColor: function (color, tabId) {
+    if (!color) {
+      tabs.update(tabId, {
+        themeColor: null
+      })
+      return
+    }
+
+    const rgb = getColorFromString(color)
+    const rgbAdjusted = adjustColorForTheme(rgb)
+
+    tabs.update(tabId, {
+      themeColor: {
+        color: getRGBString(rgbAdjusted),
+        textColor: getTextColor(rgbAdjusted),
+        isLowContrast: isLowContrast(rgbAdjusted)
+      }
+    })
+    if (tabId === tabs.getSelected()) {
+      tabColor.updateColors()
+    }
   },
   updateFromImage: function (favicons, tabId) {
     // private tabs always use a special color, we don't need to get the icon
@@ -172,18 +233,22 @@ const tabColor = {
     requestIdleCallback(function () {
       colorExtractorImage.onload = function (e) {
         const backgroundColor = getColorFromImage(colorExtractorImage)
-        const textColor = getTextColor(backgroundColor.color)
-
-        const backgroundString = getRGBString(backgroundColor.color)
+        const backgroundColorAdjusted = adjustColorForTheme(backgroundColor)
 
         tabs.update(tabId, {
-          backgroundColor: backgroundString,
-          lowContrastBackground: backgroundColor.isLowContrast,
-          foregroundColor: textColor
+          backgroundColor: {
+            color: getRGBString(backgroundColorAdjusted),
+            textColor: getTextColor(backgroundColorAdjusted),
+            isLowContrast: isLowContrast(backgroundColorAdjusted)
+          },
+          favicon: {
+            url: favicons[0],
+            luminance: getLuminance(backgroundColor)
+          }
         })
 
         if (tabId === tabs.getSelected()) {
-          tabColor.refresh()
+          tabColor.updateColors()
         }
       }
       colorExtractorImage.src = favicons[0]
@@ -191,7 +256,7 @@ const tabColor = {
       timeout: 1000
     })
   },
-  refresh: function () {
+  updateColors: function () {
     const tab = tabs.get(tabs.getSelected())
 
     // private tabs have their own color scheme
@@ -199,9 +264,16 @@ const tabColor = {
       return setColor(defaultColors.private[0], defaultColors.private[1])
     }
 
-    // use the colors extracted from the page icon
-    if (tab.backgroundColor || tab.foregroundColor) {
-      return setColor(tab.backgroundColor, tab.foregroundColor, tab.lowContrastBackground)
+    if (tabColor.useSiteTheme) {
+      // use the theme color
+      if (tab.themeColor && tab.themeColor.color) {
+        return setColor(tab.themeColor.color, tab.themeColor.textColor, tab.themeColor.isLowContrast)
+      }
+
+      // use the colors extracted from the page icon
+      if (tab.backgroundColor && tab.backgroundColor.color) {
+        return setColor(tab.backgroundColor.color, tab.backgroundColor.textColor, tab.backgroundColor.isLowContrast)
+      }
     }
 
     // otherwise use the default colors

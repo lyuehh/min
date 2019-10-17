@@ -1,3 +1,4 @@
+var webviews = require('webviews.js')
 var browserUI = require('browserUI.js')
 var searchEngine = require('util/searchEngine.js')
 
@@ -39,7 +40,7 @@ var webviewMenu = {
         linkActions.push(new MenuItem({
           label: l('openInNewTab'),
           click: function () {
-            browserUI.addTab(tabs.add({ url: link }, tabs.getIndex(tabs.getSelected()) + 1), { enterEditMode: false })
+            browserUI.addTab(tabs.add({ url: link }), { enterEditMode: false })
           }
         }))
       }
@@ -47,7 +48,7 @@ var webviewMenu = {
       linkActions.push(new MenuItem({
         label: l('openInNewPrivateTab'),
         click: function () {
-          browserUI.addTab(tabs.add({ url: link, private: true }, tabs.getIndex(tabs.getSelected()) + 1), { enterEditMode: false })
+          browserUI.addTab(tabs.add({ url: link, private: true }), { enterEditMode: false })
         }
       }))
 
@@ -74,7 +75,7 @@ var webviewMenu = {
         imageActions.push(new MenuItem({
           label: l('openImageInNewTab'),
           click: function () {
-            browserUI.addTab(tabs.add({ url: image }, tabs.getIndex(tabs.getSelected()) + 1), { enterEditMode: false })
+            browserUI.addTab(tabs.add({ url: image }), { enterEditMode: false })
           }
         }))
       }
@@ -82,7 +83,7 @@ var webviewMenu = {
       imageActions.push(new MenuItem({
         label: l('openImageInNewPrivateTab'),
         click: function () {
-          browserUI.addTab(tabs.add({ url: image, private: true }, tabs.getIndex(tabs.getSelected()) + 1), { enterEditMode: false })
+          browserUI.addTab(tabs.add({ url: image, private: true }), { enterEditMode: false })
         }
       }))
 
@@ -110,7 +111,7 @@ var webviewMenu = {
             var newTab = tabs.add({
               url: searchEngine.getCurrent().searchURL.replace('%s', encodeURIComponent(selection)),
               private: currentTab.private
-            }, tabs.getIndex(tabs.getSelected()) + 1)
+            })
             browserUI.addTab(newTab, {
               enterEditMode: false
             })
@@ -160,7 +161,7 @@ var webviewMenu = {
         label: l('goBack'),
         click: function () {
           try {
-            webviews.get(tabs.getSelected()).goBack()
+            webviews.goBackIgnoringRedirects(tabs.getSelected())
           } catch (e) {}
         }
       }),
@@ -194,9 +195,12 @@ var webviewMenu = {
     })
 
     menu.popup(remote.getCurrentWindow())
+  },
+  initialize: function () {
+    webviews.bindEvent('context-menu', function (webview, tabId, e, data) {
+      webviewMenu.showMenu(data)
+    })
   }
 }
 
-webviews.bindEvent('context-menu', function (e, data) {
-  webviewMenu.showMenu(data)
-})
+module.exports = webviewMenu

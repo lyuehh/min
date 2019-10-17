@@ -1,11 +1,12 @@
 /* global Worker tabs */
 
-const db = require('util/database.js')
+var webviews = require('webviews.js')
+const db = require('util/database.js').db
 const searchEngine = require('util/searchEngine.js')
 const urlParser = require('util/urlParser.js')
 
 const places = {
-  updateHistory: function (tabId, extractedText, metadata) {
+  savePage: function (tabId, extractedText, metadata) {
     /* this prevents pages that are immediately left from being saved to history, and also gives the page-favicon-updated event time to fire (so the colors saved to history are correct). */
     setTimeout(function () {
       const tab = tabs.get(tabId)
@@ -19,8 +20,11 @@ const places = {
         }
 
         places.worker.postMessage({
-          action: 'updateHistory',
-          pageData: data
+          action: 'updatePlace',
+          pageData: data,
+          flags: {
+            isNewVisit: true
+          }
         })
       }
     }, 500)
@@ -31,7 +35,19 @@ const places = {
     var tab = tabs.get(tabId),
       data = args[0]
 
-    var isInternalPage = tab.url.indexOf(__dirname) !== -1 && tab.url.indexOf(readerView.readerURL) === -1
+    if (tab.url.startsWith('data:') || tab.url.length > 5000) {
+      /*
+      very large URLs cause performance issues. In particular:
+      * they can cause the database to grow abnormally large, which increases memory usage and startup time
+      * they can cause the browser to hang when they are displayed in search results
+      To avoid this, don't save them to history
+      */
+      return
+    }
+
+    /* if the page is an internal page, it normally shouldn't be saved,
+     unless the page represents another page (such as the PDF viewer or reader view) */
+    var isNonIndexableInternalPage = urlParser.isInternalURL(tab.url) && urlParser.getSourceURL(tab.url) === tab.url
     var isSearchPage = searchEngine.isSearchURL(tab.url)
 
     // full-text data from search results isn't useful
@@ -40,13 +56,12 @@ const places = {
     } else {
       // include page URL tokens and title in search text
       // this allows for queries that include both the site name and some text from the page
-      // limit tab URL length because of data: urls
       data.extractedText = urlParser.removeProtocol(tab.url).substr(0, 200) + ' ' + tab.title + ' ' + data.extractedText
     }
 
-    // don't save to history if in private mode, or the page is a browser page
-    if (tab.private === false && !isInternalPage) {
-      places.updateHistory(tabId, data.extractedText, data.metadata)
+    // don't save to history if in private mode, or the page is a browser page (unless it contains the content of a normal page)
+    if (tab.private === false && !isNonIndexableInternalPage) {
+      places.savePage(tabId, data.extractedText, data.metadata)
     }
   },
   callbacks: [],
@@ -106,10 +121,10 @@ const places = {
   },
   updateBookmarkState: function (url, shouldBeBookmarked) {
     places.worker.postMessage({
-      action: 'updateBookmarkState',
+      action: 'updatePlace',
       pageData: {
         url: url,
-        shouldBeBookmarked: shouldBeBookmarked
+        isBookmarked: shouldBeBookmarked
       }
     })
   },
@@ -125,6 +140,9 @@ const places = {
     })
   },
   initialize: function () {
+    if (places.worker) {
+      places.worker.terminate()
+    }
     places.worker = new Worker('js/places/placesWorker.js')
     places.worker.onmessage = places.onMessage
 

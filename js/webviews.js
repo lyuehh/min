@@ -1,14 +1,13 @@
-var browserUI = require('browserUI.js')
 const previewCache = require('previewCache.js')
 var getView = remote.getGlobal('getView')
 var urlParser = require('util/urlParser.js')
+var settings = require('util/settings/settings.js')
 
 /* implements selecting webviews, switching between them, and creating new ones. */
 
 var placeholderImg = document.getElementById('webview-placeholder')
 
 var windowIsMaximized = false // affects navbar height on Windows
-var windowIsFullscreen = false // TODO track this for each individual webContents
 
 function lazyRemoteObject (getObject) {
   var cachedItem = null
@@ -35,6 +34,11 @@ function forceUpdateDragRegions () {
 }
 
 function captureCurrentTab (options) {
+  if (tabs.get(tabs.getSelected()).private) {
+    // don't capture placeholders for private tabs
+    return
+  }
+
   if (webviews.placeholderRequests.length > 0 && !(options && options.forceCapture === true)) {
     // capturePage doesn't work while the view is hidden
     return
@@ -47,23 +51,8 @@ function captureCurrentTab (options) {
   })
 }
 
-function updateBackButton () {
-  if (!tabs.get(tabs.getSelected()).url) {
-    goBackButton.disabled = true
-    return
-  }
-  webviews.callAsync(tabs.getSelected(), 'canGoBack', null, function (canGoBack) {
-    goBackButton.disabled = !canGoBack
-  })
-}
-
 // called whenever a new page starts loading, or an in-page navigation occurs
 function onPageURLChange (tab, url) {
-  // if the page is an error page, the URL is really the value of the "url" query parameter
-  if (url.startsWith(webviews.internalPages.error)) {
-    url = new URLSearchParams(new URL(url).search).get('url')
-  }
-
   if (url.indexOf('https://') === 0 || url.indexOf('about:') === 0 || url.indexOf('chrome:') === 0 || url.indexOf('file://') === 0) {
     tabs.update(tab, {
       secure: true,
@@ -78,36 +67,32 @@ function onPageURLChange (tab, url) {
 }
 
 // called whenever the page finishes loading
-function onPageLoad (e) {
-  var tab = webviews.getTabFromContents(this)
-
-  webviews.callAsync(tab, 'getURL', null, function (url) {
+function onPageLoad (webview, tabId, e) {
+  webviews.callAsync(tabId, 'getURL', null, function (err, url) {
+    if (err) {
+      return
+    }
     // capture a preview image if a new page has been loaded
-    if (tab === tabs.getSelected() && tabs.get(tab).url !== url) {
+    if (tabId === tabs.getSelected() && tabs.get(tabId).url !== url) {
       setTimeout(function () {
         // sometimes the page isn't visible until a short time after the did-finish-load event occurs
         captureCurrentTab()
       }, 100)
     }
 
-    onPageURLChange(tab, url)
-
-    tabBar.rerenderTab(tab)
-
-    updateBackButton()
+    onPageURLChange(tabId, url)
   })
 }
 
 // called whenever a navigation finishes
-function onNavigate (e, url, httpResponseCode, httpStatusText) {
-  var tab = webviews.getTabFromContents(this)
-  onPageURLChange(tab, url)
-  updateBackButton()
+function onNavigate (webview, tabId, e, url, httpResponseCode, httpStatusText) {
+  onPageURLChange(tabId, url)
 }
 
-window.webviews = {
+const webviews = {
   tabViewMap: {}, // tabId: browserView
   tabContentsMap: {}, // tabId: webContents
+  viewFullscreenMap: {}, // tabId, isFullscreen
   selectedId: null,
   placeholderRequests: [],
   asyncCallbacks: {},
@@ -140,7 +125,7 @@ window.webviews = {
     webviews.resize()
   },
   getViewBounds: function () {
-    if (windowIsFullscreen) {
+    if (webviews.viewFullscreenMap[webviews.selectedId]) {
       return {
         x: 0,
         y: 0,
@@ -148,7 +133,7 @@ window.webviews = {
         height: window.innerHeight
       }
     } else {
-      if (window.platformType === 'windows' && !windowIsMaximised) {
+      if (window.platformType === 'windows' && !windowIsMaximized) {
         var navbarHeight = 46
       } else {
         var navbarHeight = 36
@@ -170,10 +155,6 @@ window.webviews = {
     // since tab IDs are unique, we can use them as partition names
     if (tabs.get(tabId).private === true) {
       var partition = tabId.toString() // options.tabId is a number, which remote.session.fromPartition won't accept. It must be converted to a string first
-
-      // enable ad/tracker/contentType blocking in this tab if needed
-
-      registerFiltering(partition)
     }
 
     ipc.send('createView', {
@@ -203,7 +184,7 @@ window.webviews = {
     })
 
     if (tabData.url) {
-      webviews.callAsync(tabData.id, 'loadURL', tabData.url)
+      ipc.send('loadURLInView', {id: tabData.id, url: urlParser.parse(tabData.url)})
     }
 
     webviews.tabViewMap[tabId] = view
@@ -218,9 +199,9 @@ window.webviews = {
       webviews.add(id)
     }
 
-    updateBackButton()
-
     if (webviews.placeholderRequests.length > 0) {
+      // update the placeholder instead of showing the actual view
+      webviews.requestPlaceholder()
       return
     }
 
@@ -233,7 +214,7 @@ window.webviews = {
     forceUpdateDragRegions()
   },
   update: function (id, url) {
-    webviews.callAsync(id, 'loadURL', urlParser.parse(url))
+    ipc.send('loadURLInView', {id: id, url: urlParser.parse(url)})
   },
   destroy: function (id) {
     var w = webviews.tabViewMap[id]
@@ -242,6 +223,7 @@ window.webviews = {
     }
     delete webviews.tabViewMap[id]
     delete webviews.tabContentsMap[id]
+    delete webviews.viewFullscreenMap[id]
     if (webviews.selectedId === id) {
       webviews.selectedId = null
     }
@@ -253,10 +235,10 @@ window.webviews = {
     return webviews.tabContentsMap[id]
   },
   requestPlaceholder: function (reason) {
-    if (!webviews.placeholderRequests.includes(reason)) {
+    if (reason && !webviews.placeholderRequests.includes(reason)) {
       webviews.placeholderRequests.push(reason)
     }
-    if (webviews.placeholderRequests.length === 1) {
+    if (webviews.placeholderRequests.length >= 1) {
       // create a new placeholder
 
       var img = previewCache.get(webviews.selectedId)
@@ -264,14 +246,18 @@ window.webviews = {
       if (img) {
         placeholderImg.src = img
         placeholderImg.hidden = false
-      } else if (associatedTab && associatedTab.url && associatedTab.url !== 'about:blank') {
+      } else if (associatedTab && associatedTab.url) {
         captureCurrentTab({forceCapture: true})
       } else {
         placeholderImg.hidden = true
       }
     }
     setTimeout(function () {
-      ipc.send('hideCurrentView')
+      // wait to make sure the image is visible before the view is hidden
+      // make sure the placeholder was not removed between when the timeout was created and when it occurs
+      if (webviews.placeholderRequests.length > 0) {
+        ipc.send('hideCurrentView')
+      }
     }, 0)
   },
   hidePlaceholder: function (reason) {
@@ -314,6 +300,24 @@ window.webviews = {
   resize: function () {
     ipc.send('setBounds', {id: webviews.selectedId, bounds: webviews.getViewBounds()})
   },
+  goBackIgnoringRedirects: function (id) {
+    // special case: the current page is an internal page representing a regular webpage, and the previous page in history is that page (which likely means a redirect happened from the original page to the internal page)
+    // probably either an error page (after  a redirect from the original page) or reader view
+    var url = tabs.get(id).url
+
+    var isInternalURL = urlParser.isInternalURL(url)
+    if (isInternalURL) {
+      var representedURL = urlParser.getSourceURL(url)
+      // TODO this uses internal Electron API's - figure out a way to do this with the public API
+      var history = webviews.get(id).history.slice(0, webviews.get(id).currentIndex + 1)
+    }
+
+    if (isInternalURL && history.length > 2 && history[history.length - 2] === representedURL) {
+      webviews.get(id).goToOffset(-2)
+    } else {
+      webviews.get(id).goBack()
+    }
+  },
   callAsync: function (id, method, args, callback) {
     if (!(args instanceof Array)) {
       args = [args]
@@ -326,20 +330,6 @@ window.webviews = {
   }
 }
 
-webviews.bindEvent('new-window', function (e, url, frameName, disposition) {
-  var tab = webviews.getTabFromContents(this)
-  var currentIndex = tabs.getIndex(tabs.getSelected())
-
-  var newTab = tabs.add({
-    url: url,
-    private: tabs.get(tab).private // inherit private status from the current tab
-  }, currentIndex + 1)
-  browserUI.addTab(newTab, {
-    enterEditMode: false,
-    openInBackground: disposition === 'background-tab' // possibly open in background based on disposition
-  })
-}, {preventDefault: true})
-
 window.addEventListener('resize', throttle(function () {
   if (webviews.placeholderRequests.length > 0) {
     // can't set view bounds if the view is hidden
@@ -348,23 +338,33 @@ window.addEventListener('resize', throttle(function () {
   webviews.resize()
 }, 75))
 
-ipc.on('enter-html-full-screen', function () {
-  windowIsFullscreen = true
+//leave HTML fullscreen when leaving window fullscreen
+ipc.on('leave-full-screen', function () {
+  // electron normally does this automatically (https://github.com/electron/electron/pull/13090/files), but it doesn't work for BrowserViews
+  for (var view in webviews.viewFullscreenMap) {
+    if (webviews.viewFullscreenMap[view]) {
+      webviews.callAsync(view, 'executeJavaScript', 'document.exitFullscreen()')
+    }
+  }
+})
+
+webviews.bindEvent('enter-html-full-screen', function () {
+  webviews.viewFullscreenMap[webviews.getTabFromContents(this)] = true
   webviews.resize()
 })
 
-ipc.on('leave-html-full-screen', function () {
-  windowIsFullscreen = false
+webviews.bindEvent('leave-html-full-screen', function () {
+  webviews.viewFullscreenMap[webviews.getTabFromContents(this)] = false
   webviews.resize()
 })
 
 ipc.on('maximize', function () {
-  windowIsMaximised = true
+  windowIsMaximized = true
   webviews.resize()
 })
 
 ipc.on('unmaximize', function () {
-  windowIsMaximised = false
+  windowIsMaximized = false
   webviews.resize()
 })
 
@@ -372,22 +372,19 @@ webviews.bindEvent('did-finish-load', onPageLoad)
 webviews.bindEvent('did-navigate-in-page', onPageLoad)
 webviews.bindEvent('did-navigate', onNavigate)
 
-webviews.bindEvent('page-title-updated', function (e, title, explicitSet) {
-  var tab = webviews.getTabFromContents(this)
-  tabs.update(tab, {
+webviews.bindEvent('page-title-updated', function (webview, tabId, e, title, explicitSet) {
+  tabs.update(tabId, {
     title: title
   })
-  tabBar.rerenderTab(tab)
 })
 
-webviews.bindEvent('did-fail-load', function (e, errorCode, errorDesc, validatedURL, isMainFrame) {
+webviews.bindEvent('did-fail-load', function (webview, tabId, e, errorCode, errorDesc, validatedURL, isMainFrame) {
   if (errorCode && errorCode !== -3 && isMainFrame && validatedURL) {
-    browserUI.navigate(webviews.getTabFromContents(this), webviews.internalPages.error + '?ec=' + encodeURIComponent(errorCode) + '&url=' + encodeURIComponent(validatedURL))
+    webviews.update(tabId, webviews.internalPages.error + '?ec=' + encodeURIComponent(errorCode) + '&url=' + encodeURIComponent(validatedURL))
   }
 })
 
-webviews.bindEvent('crashed', function (e, isKilled) {
-  var tabId = webviews.getTabFromContents(this)
+webviews.bindEvent('crashed', function (webview, tabId, e, isKilled) {
   var url = tabs.get(tabId).url
 
   tabs.update(tabId, {
@@ -403,8 +400,25 @@ webviews.bindEvent('crashed', function (e, isKilled) {
   }
 })
 
-webviews.bindIPC('close-window', function (webview, tabId, args) {
-  browserUI.closeTab(tabId)
+webviews.bindIPC('getSettingsData', function (webview, tabId, args) {
+  webview.send('receiveSettingsData', settings.list)
+})
+webviews.bindIPC('setSetting', function (webview, tabId, args) {
+  settings.set(args[0].key, args[0].value)
+})
+
+settings.listen(function () {
+  tasks.forEach(function (task) {
+    task.tabs.forEach(function (tab) {
+      if (tab.url.startsWith('file://')) {
+        try {
+          webviews.get(tab.id).send('receiveSettingsData', settings.list)
+        } catch (e) {
+          // webview might not actually exist
+        }
+      }
+    })
+  })
 })
 
 ipc.on('view-event', function (e, args) {
@@ -414,13 +428,13 @@ ipc.on('view-event', function (e, args) {
   }
   webviews.events.forEach(function (ev) {
     if (ev.id === args.eventId) {
-      ev.fn.apply(webviews.tabContentsMap[args.viewId], [e].concat(args.args))
+      ev.fn.apply(webviews.tabContentsMap[args.viewId], [webviews.tabContentsMap[args.viewId], args.viewId, e].concat(args.args))
     }
   })
 })
 
 ipc.on('async-call-result', function (e, args) {
-  webviews.asyncCallbacks[args.callId](args.data)
+  webviews.asyncCallbacks[args.callId](args.error, args.result)
   delete webviews.asyncCallbacks[args.callId]
 })
 
@@ -455,3 +469,5 @@ ipc.on('windowFocus', function () {
     webviews.focus()
   }
 })
+
+module.exports = webviews

@@ -1,12 +1,11 @@
 var browserUI = require('browserUI.js')
 var searchbarPlugins = require('searchbar/searchbarPlugins.js')
-var searchbarUtils = require('searchbar/searchbarUtils.js')
 var urlParser = require('util/urlParser.js')
 
 var stringScore = require('string_score')
 
-var searchOpenTabs = function (text, input, event, container) {
-  empty(container)
+var searchOpenTabs = function (text, input, event) {
+  searchbarPlugins.reset('openTabs')
 
   var matches = []
   var searchText = text.toLowerCase()
@@ -14,8 +13,8 @@ var searchOpenTabs = function (text, input, event, container) {
   var currentTab = currentTask.tabs.getSelected()
 
   tasks.forEach(function (task) {
-    task.tabs.get().forEach(function (tab) {
-      if (tab.id === currentTab || !tab.title || tab.url === 'about:blank') {
+    task.tabs.forEach(function (tab) {
+      if (tab.id === currentTab || !tab.title || !tab.url) {
         return
       }
 
@@ -61,12 +60,10 @@ var searchOpenTabs = function (text, input, event, container) {
       data.metadata = [taskName]
     }
 
-    var item = searchbarUtils.createItem(data)
-
-    item.addEventListener('click', function () {
+    data.click = function () {
       // if we created a new tab but are switching away from it, destroy the current (empty) tab
       var currentTabUrl = tabs.get(tabs.getSelected()).url
-      if (!currentTabUrl || currentTabUrl === 'about:blank') {
+      if (!currentTabUrl) {
         browserUI.closeTab(tabs.getSelected())
       }
 
@@ -75,18 +72,20 @@ var searchOpenTabs = function (text, input, event, container) {
       }
 
       browserUI.switchToTab(match.tab.id)
-    })
+    }
 
-    container.appendChild(item)
+    searchbarPlugins.addResult('openTabs', data)
   })
-
-  searchbarPlugins.addResults('openTabs', finalMatches.length)
 }
 
-searchbarPlugins.register('openTabs', {
-  index: 4,
-  trigger: function (text) {
-    return text.length > 2
-  },
-  showResults: searchOpenTabs
-})
+function initialize () {
+  searchbarPlugins.register('openTabs', {
+    index: 4,
+    trigger: function (text) {
+      return text.length > 2
+    },
+    showResults: searchOpenTabs
+  })
+}
+
+module.exports = {initialize}

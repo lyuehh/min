@@ -50,10 +50,12 @@
 	<div class="spacer"></div>
 	<div class="container padding" id="appearance-settings-container">
 		<h3 data-string="settingsAppearanceHeading"></h3>
-
 		<div class="setting-section">
 			<input type="checkbox" id="checkbox-dark-mode" />
 			<label for="checkbox-dark-mode" data-string="settingsDarkModeToggle"></label>
+			<div class="spacer"></div>
+			<input type="checkbox" id="checkbox-site-theme" />
+			<label for="checkbox-site-theme" data-string="settingsSiteThemeToggle"></label>
 			<div class="spacer"></div>
 			<input type="checkbox" id="checkbox-history-button" />
 			<label for="checkbox-history-button" data-string="settingsHistoryButtonToggle"></label>
@@ -61,18 +63,18 @@
 	</div>
 
 	<div class="spacer"></div>
-	<div class="container padding" id="swipe-settings-container">
+	<div class="container padding" id="additional-settings-container">
 		<h3 data-string="settingsAdditionalFeaturesHeading"></h3>
-
-		<div class="setting-section">
-			<input type="checkbox" id="checkbox-swipe-navigation" />
-			<label for="checkbox-swipe-navigation" data-string="settingsSwipeNavigationToggle"></label>
-		</div>
 
 		<div class="setting-section">
 			<input type="checkbox" id="checkbox-userscripts" />
 			<label for="checkbox-userscripts" data-string="settingsUserscriptsToggle"></label>
 			<div class="light-fade setting-secondary-label" data-string="settingsUserscriptsExplanation" data-allowHTML></div>
+		</div>
+
+		<div class="setting-section">
+			<input type="checkbox" id="checkbox-update-notifications">
+			<label for="checkbox-update-notifications" data-string="settingsUpdateNotificationsToggle"></label>
 		</div>
 	</div>
 
@@ -109,8 +111,8 @@
 
 	<script src="../../ext/Dexie.min.js"></script>
 	<script src="../../js/util/database.js"></script>
-	<script src="../../js/util/defaultKeyMap.js"></script>
-	<script src="../../js/util/settings.js"></script>
+	<script src="../../js/util/keyMap.js"></script>
+	<script src="../../js/util/settings/settingsContent.js"></script>
 	<script src="../../js/util/searchEngine.js"></script>
 	<script src="../../js/util/theme.js"></script>
 	<script src="../../dist/localization.build.js"></script>

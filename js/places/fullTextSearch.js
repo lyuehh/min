@@ -131,7 +131,7 @@ const stopWords = {
 /* this is used in placesWorker.js when a history item is created */
 function tokenize (string) {
   return string.trim().toLowerCase().replace(nonLetterRegex, ' ').split(whitespaceRegex).filter(function (token) {
-    return !stopWords[token]
+    return !stopWords[token] && token.length <= 100
   }).slice(0, 20000)
 }
 
@@ -153,7 +153,7 @@ function getMatchingDocs (prefixes) {
       })
 
     // Finally select entire documents from intersection
-    return yield db.places.where('url').anyOf(reduced).limit(100).toArray()
+    return yield db.places.where('id').anyOf(reduced).limit(100).toArray()
   })
 }
 

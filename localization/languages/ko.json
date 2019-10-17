@@ -13,6 +13,10 @@
         "saveImageAs": "이미지를 다른 이름으로 저장",
         "searchWith": "%s에서 검색", //%s will be replaced with the name of the current search engine
         "copyLink": "주소 복사",
+        "selectAll": null, // Missing Translation
+        "undo": null, // Missing Translation
+        "redo": null, // Missing Translation
+        "cut": null, // Missing Translation
         "copy": "복사", //this is a verb (as in "copy the currently-selected text")
         "paste": "붙여넣기",
         "goBack": "뒤로",
@@ -27,15 +31,20 @@
         /* custom !bangs
         these are some of the items that show up when you press ! in the searchbar.
         Each one of these strings describes what the command will do when you run it. */
+        "showMoreBangs": null, //missing translation
         "viewSettings": "설정",
         "viewReadingList": "읽기 항목",
         "takeScreenshot": "스크린샷",
         "clearHistory": "기록 삭제",
+        "clearHistoryConfirmation": null, //missing translation
         "switchToTask": "태스크 변경",
         "createTask": "태스크 생성",
+        "closeTask": null, //missing translation
         "moveToTask": "태스트로 탭 이동",
+        "nameTask": null, //missing translation
         "searchBookmarks": "북마크 검색",
         "searchHistory": "기록 검색",
+        "exportBookmarks": null, //missing translation
         /* navbar */
         "openMenu": "메뉴", //application menu button on windows
         "enterReaderView": "읽기 모드",
@@ -51,6 +60,10 @@
         "viewTasks": "태스크 보기",
         "newTask": "새 태스크", //"new" is a verb - it is used for a button at the bottom of the task overlay
         "defaultTaskName": "태스크 %n", //this is the name used for newly-created tasks; %n is replaced with a number ("task 1", "task 2", etc)
+        "taskDeleteWarning": {"unsafeHTML": null}, //missing translation
+        "returnToTask": null, //missing translation
+        "taskDescriptionTwo": null, //missing translation
+        "taskDescriptionThree": null, //missing translation
         /* find in page toolbar */
         "searchInPage": "페이지 검색", //this is used as the placeholder text for the textbox in the find in page toolbar
         "findMatchesSingular": "%t 의 %i 일치", //this and the next label are used to indicate which match is currently highlighted
@@ -64,7 +77,8 @@
         "timeRangeJustNow": "방금",
         "timeRangeMinutes": "몇분 전",
         "timeRangeHour": "몇시간 전",
-        "timeRangeDay": "어제",
+        "timeRangeToday": null, //missing translation
+        "timeRangeYesterday": null, //missing translation
         "timeRangeWeek": "지난 주",
         "timeRangeMonth": "지난 달",
         "timeRangeYear": "작년",
@@ -115,11 +129,12 @@
         },
         "settingsAppearanceHeading": "외모",
         "settingsDarkModeToggle": "어두운 모드 사용",
+        "settingsSiteThemeToggle": null, //missing translation
         "settingsHistoryButtonToggle": "뒤로 버튼 사용",
         "settingsAdditionalFeaturesHeading": "추가 기능",
-        "settingsSwipeNavigationToggle": "페이지간 이동을 위한 스와이프 모드 사용",
         "settingsUserscriptsToggle": "사용자 스크립트 사용",
         "settingsUserscriptsExplanation": {"unsafeHTML": "사용자 스크립트를 사용하면 웹 사이트의 행동을 수정할 수 있습니다. - <a href=\"https://github.com/minbrowser/min/wiki/userscripts\">더보기</a>."},
+        "settingsUpdateNotificationsToggle": null, //missing translation
         "settingsSearchEngineHeading": "검색 엔진",
         "settingsDefaultSearchEngine": "기본 검색 엔진:",
         "settingsDDGExplanation": "SDuckDuckGo를 기본 검색 엔진으로 설정하여 검색 창에서 바로 검색 해 보세요.",
@@ -176,6 +191,8 @@
         /* Download manager */
         "downloadCancel": null, //missing translation
         "downloadStateCompleted": null, //missing translation
-        "downloadStateFailed": null //missing translation
+        "downloadStateFailed": null, //missing translation
+        /* Update Notifications */
+        "updateNotificationTitle": null //missing translation
     }
 }

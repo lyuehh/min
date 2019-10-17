@@ -1,11 +1,14 @@
+var webviews = require('webviews.js')
+var keybindings = require('keybindings.js')
 var browserUI = require('browserUI.js')
+var urlParser = require('util/urlParser.js')
 var searchbarPlugins = require('searchbar/searchbarPlugins.js')
 
 function openURLInBackground (url) { // used to open a url in the background, without leaving the searchbar
   var newTab = tabs.add({
     url: url,
     private: tabs.get(tabs.getSelected()).private
-  }, tabs.getIndex(tabs.getSelected()) + 1)
+  })
   browserUI.addTab(newTab, {
     enterEditMode: false,
     openInBackground: true
@@ -39,7 +42,7 @@ var searchbar = {
     // delete key doesn't behave like the others, String.fromCharCode returns an unprintable character (which has a length of one)
 
     if (event && event.keyCode !== 8) {
-      var realText = text.substring(0, searchbar.associatedInput.selectionStart) + String.fromCharCode(event.keyCode) + text.substring(searchbar.associatedInput.selectionEnd, text.length)
+      var realText = text.substring(0, searchbar.associatedInput.selectionStart) + event.key + text.substring(searchbar.associatedInput.selectionEnd, text.length)
     } else {
       var realText = text
     }
@@ -106,5 +109,23 @@ searchbar.el.addEventListener('keydown', function (e) {
     })
   }
 })
+
+  // mod+enter navigates to searchbar URL + ".com"
+keybindings.defineShortcut('completeSearchbar', function () {
+  if (searchbar.associatedInput) { // if the searchbar is open
+    var value = searchbar.associatedInput.value
+
+    tabBar.leaveEditMode()
+
+      // if the text is already a URL, navigate to that page
+    if (urlParser.isURLMissingProtocol(value)) {
+      browserUI.navigate(tabs.getSelected(), value)
+    } else {
+      browserUI.navigate(tabs.getSelected(), urlParser.parse(value + '.com'))
+    }
+  }
+})
+
+searchbarPlugins.initialize(searchbar.openURL)
 
 module.exports = searchbar

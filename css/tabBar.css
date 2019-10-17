@@ -11,11 +11,11 @@
 
 /* window drag regions */
 
-.windows-drag-area {
+.window-drag-area {
 	display: none;
 }
 
-body.windows:not(.maximized) .windows-drag-area {
+body.windows:not(.maximized) .window-drag-area {
 	display: block;
 	position: fixed;
 	/* leave an empty space around the edges of the drag area so that the window can be resized */
@@ -26,7 +26,13 @@ body.windows:not(.maximized) .windows-drag-area {
 	-webkit-app-region: drag;
 }
 
-body.mac #navbar {
+body.mac .window-drag-area {
+	display: block;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 32px;
 	-webkit-app-region: drag;
 }
 
@@ -76,9 +82,12 @@ body.windows:not(.maximized) #navbar {
 	opacity: 0.2;
 }
 
-body.is-edit-mode #back-button,
-body.is-edit-mode #menu-button {
+body.is-edit-mode #back-button {
 	display: none;
+}
+
+#menu-button {
+	margin-top: 1px;
 }
 
 body:not(.windows) #menu-button {
@@ -122,7 +131,7 @@ body.is-edit-mode #navbar #tabs {
 .tab-item .tab-icon-area {
 	float: right;
 }
-.tab-item i {
+.tab-item .tab-icon {
 	font-size: 0.8em;
 	padding: 0.66em;
 	vertical-align: middle;
@@ -136,7 +145,7 @@ body.is-edit-mode #navbar #tabs {
 	background: rgba(255, 255, 255, 0.2);
 }
 .dark-theme.theme-background-low-contrast .tab-item.active:not(:only-child) {
-	background: rgba(255, 255, 255, 0.24);
+	background: rgba(255, 255, 255, 0.25);
 }
 .tab-item.selected {
 	min-width: 100%;
@@ -157,10 +166,11 @@ body.is-edit-mode #navbar #tabs {
 	height: 0.25em;
 }
 #navbar #tabs::-webkit-scrollbar-track {
-	background-color: rgba(0, 0, 0, 0.075);
+	background-color: rgba(0, 0, 0, 0.05);
 }
 #navbar #tabs::-webkit-scrollbar-thumb {
 	background-color: rgba(0, 0, 0, 0.175);
+	border-radius: 0.25em;
 }
 .dark-theme #navbar #tabs::-webkit-scrollbar-track {
 	background-color: rgba(255, 255, 255, 0.25);
@@ -264,11 +274,25 @@ body.dark-mode #overlay {
 	padding-left: 0.5em;
 }
 
+.tab-item .bookmarks-button {
+	font-size: 0.9em;
+}
+
 /* reader button */
 
 .tab-item .reader-button {
 	display: none;
-	padding-left: 0;
+	margin-left: -0.66em;
+	height: 11px;
+	margin-top: -2px;
+	/* fixes blurry rendering.
+	image-rendering: pixelated should do the same thing, 
+	but it doesn't seem to work.
+	*/
+	transform: scaleX(1.00001);
+}
+.dark-theme .tab-item .reader-button {
+	filter: invert(1);
 }
 .tab-item.active .reader-button.can-reader {
 	display: inline-block;

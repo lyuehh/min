@@ -13,6 +13,10 @@
         "saveImageAs": "Įrašyti paveikslą kaip",
         "searchWith": "Ieškoti naudojant %s", //%s will be replaced with the name of the current search engine
         "copyLink": "Kopijuoti nuorodą",
+        "selectAll": null, // Missing Translation
+        "undo": null, // Missing Translation
+        "redo": null, // Missing Translation
+        "cut": null, // Missing Translation
         "copy": "Kopijuoti", //this is a verb (as in "copy the currently-selected text")
         "paste": "Įdėti",
         "goBack": "Grįžti",
@@ -27,15 +31,20 @@
         /* custom !bangs
         these are some of the items that show up when you press ! in the searchbar.
         Each one of these strings describes what the command will do when you run it. */
+        "showMoreBangs": null, //missing translation
         "viewSettings": "Rodyti nustatymus",
         "viewReadingList": "Rodyti skaitymo sąrašą",
         "takeScreenshot": "Padaryti ekrano kopiją",
         "clearHistory": "Išvalyti visą istoriją",
+        "clearHistoryConfirmation": null, //missing translation
         "switchToTask": "Perjungti į užduotį",
         "createTask": "Sukurti užduotį",
+        "closeTask": null, //missing translation
         "moveToTask": "Perkelti šią kortelę į užduotį",
+        "nameTask": null, //missing translation
         "searchBookmarks": "Ieškoti adresyno įrašų",
         "searchHistory": "Ieškoti istorijos",
+        "exportBookmarks": null, //missing translation
         /* navbar */
         "openMenu": "Atverti meniu", //application menu button on windows
         "enterReaderView": "Įeiti į skaitymo rodinį",
@@ -51,6 +60,10 @@
         "viewTasks": "Rodyti užduotis",
         "newTask": "Nauja užduotis", //"new" is a verb - it is used for a button at the bottom of the task overlay
         "defaultTaskName": "Užduotis %n", //this is the name used for newly-created tasks; %n is replaced with a number ("task 1", "task 2", etc)
+        "taskDeleteWarning": {"unsafeHTML": null}, //missing translation
+        "returnToTask": null, //missing translation
+        "taskDescriptionTwo": null, //missing translation
+        "taskDescriptionThree": null, //missing translation
         /* find in page toolbar */
         "searchInPage": "Ieškoti puslapyje", //this is used as the placeholder text for the textbox in the find in page toolbar
         "findMatchesSingular": "%i iš %t atitikmens", //this and the next label are used to indicate which match is currently highlighted
@@ -64,7 +77,8 @@
         "timeRangeJustNow": "Ką tik",
         "timeRangeMinutes": "Prieš kelias minutes",
         "timeRangeHour": "Per pastarąją valandą",
-        "timeRangeDay": "Per pastarąją dieną",
+        "timeRangeToday": null, //missing translation
+        "timeRangeYesterday": null, //missing translation
         "timeRangeWeek": "Per pastarąją savaitę",
         "timeRangeMonth": "Per pastarąjį mėnesį",
         "timeRangeYear": "Per pastaruosius metus",
@@ -104,22 +118,23 @@
         "settingsPreferencesHeading": "Nuostatos",
         "settingsRestartRequired": "Norėdami taikyti šiuos pakeitimus, turite paleisti programą iš naujo.",
         "settingsPrivacyHeading": "Turinio blokavimas",
-        "settingsContentBlockingLevel0": null, //missing translation
-        "settingsContentBlockingLevel1": null, //missing translation
-        "settingsContentBlockingLevel2": null, //missing translation
-        "settingsContentBlockingExceptions": null, //missing translation
+        "settingsContentBlockingLevel0": "Leisti visas reklamas ir seklius",
+        "settingsContentBlockingLevel1": "Blokuoti trečiųjų šalių reklamas ir seklius",
+        "settingsContentBlockingLevel2": "Blokuoti visas reklamas ir seklius",
+        "settingsContentBlockingExceptions": "Reklamos vis dar bus leidžiamos šiose svetainėse:",
         "settingsBlockScriptsToggle": "Blokuoti scenarijus",
         "settingsBlockImagesToggle": "Blokuoti paveikslus",
         "settingsEasyListCredit": {
-            "unsafeHTML": null //missing translation
+            "unsafeHTML": "Pagrįstas EasyList ir EasyPrivacy, sukurtas <a target=\"_blank\" href=\"https://easylist.to/\">EasyList autorių</a> (<a target=\"_blank\" href=\"https://creativecommons.org/licenses/by-sa/3.0/legalcode\">rodyti licenciją</a>)."
         },
         "settingsAppearanceHeading": "Išvaizda",
         "settingsDarkModeToggle": "Įjungti tamsią veikseną",
+        "settingsSiteThemeToggle": null, //missing translation
         "settingsHistoryButtonToggle": "Įjungti grįžties mygtuką",
         "settingsAdditionalFeaturesHeading": "Papildomos ypatybės",
-        "settingsSwipeNavigationToggle": "Įjungti perbraukimus, skirtus naršyti tarp puslapių pirmyn ir atgal.",
         "settingsUserscriptsToggle": "Įjungti naudotojo scenarijus",
         "settingsUserscriptsExplanation": {"unsafeHTML": "Naudotojo scenarijai leidžia jums modifikuoti internetinių svetainių elgseną - <a href=\"https://github.com/minbrowser/min/wiki/userscripts\">sužinokite daugiau</a>."},
+        "settingsUpdateNotificationsToggle": "Automatiškai tikrinti ar yra atnaujinimų",
         "settingsSearchEngineHeading": "Paieškos sistema",
         "settingsDefaultSearchEngine": "Pasirinkite numatytąją paieškos sistemą:",
         "settingsDDGExplanation": "Nustatykite DuckDuckGo kaip numatytąją paieškos sistemą, norėdami paieškos juostoje matyti greitus atsakymus.",
@@ -129,7 +144,7 @@
         /* app menu */
         "appMenuFile": "Failas",
         "appMenuNewTab": "Nauja kortelė",
-        "appMenuDuplicateTab": null, //missing translation
+        "appMenuDuplicateTab": "Dubliuoti kortelę",
         "appMenuNewPrivateTab": "Nauja privati kortelė",
         "appMenuNewTask": "Nauja užduotis",
         "appMenuSavePageAs": "Įrašyti puslapį kaip",
@@ -174,8 +189,10 @@
         /* PDF Viewer */
         "PDFPageCounter": {"unsafeHTML": "puslapis <input type='text'/> iš <span id='total'></span>"},
         /* Download manager */
-        "downloadCancel": null, //missing translation
-        "downloadStateCompleted": null, //missing translation
-        "downloadStateFailed": null //missing translation
+        "downloadCancel": "Atsisakyti",
+        "downloadStateCompleted": "Užbaigtas",
+        "downloadStateFailed": "Nepavyko",
+        /* Update Notifications */
+        "updateNotificationTitle": "Yra prieinama nauja Min versija"
     }
 }

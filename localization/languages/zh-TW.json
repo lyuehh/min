@@ -13,6 +13,10 @@
         "saveImageAs": "儲存圖片",
         "searchWith": "以 %s 搜尋", //%s will be replaced with the name of the current search engine
         "copyLink": "複製連結",
+        "selectAll": "全選",
+        "undo": "復原",
+        "redo": "重做",
+        "cut": "剪下",
         "copy": "複製", //this is a verb (as in "copy the currently-selected text")
         "paste": "貼上",
         "goBack": "上一頁",
@@ -27,15 +31,20 @@
         /* custom !bangs
         these are some of the items that show up when you press ! in the searchbar.
         Each one of these strings describes what the command will do when you run it. */
+        "showMoreBangs": null, //missing translation
         "viewSettings": "查看設定",
         "viewReadingList": "查看閱讀清單",
         "takeScreenshot": "螢幕截圖",
         "clearHistory": "清除所有歷史",
+        "clearHistoryConfirmation": null, //missing translation
         "switchToTask": "切換至工作",
         "createTask": "新增工作",
+        "closeTask": "關閉工作",
         "moveToTask": "移動至工作",
+        "nameTask": null, //missing translation
         "searchBookmarks": "搜尋書籤",
         "searchHistory": "搜尋歷史",
+        "exportBookmarks": null, //missing translation
         /* navbar */
         "openMenu": "打開選單",
         "enterReaderView": "進入閱讀模式",
@@ -51,6 +60,10 @@
         "viewTasks": "查看工作",
         "newTask": "新增工作", //"new" is a verb - it is used for a button at the bottom of the task overlay
         "defaultTaskName": "工作 %n", //this is the name used for newly-created tasks; %n is replaced with a number ("task 1", "task 2", etc)
+        "taskDeleteWarning": {"unsafeHTML": null}, //missing translation
+        "returnToTask": null, //missing translation
+        "taskDescriptionTwo": null, //missing translation
+        "taskDescriptionThree": null, //missing translation
         /* find in page toolbar */
         "searchInPage": "在頁面中尋找", //this is used as the placeholder text for the textbox in the find in page toolbar
         "findMatchesSingular": "%i / %t", //this and the next label are used to indicate which match is currently highlighted
@@ -64,7 +77,8 @@
         "timeRangeJustNow": "剛剛", 
         "timeRangeMinutes": "幾分鐘前",
         "timeRangeHour": "幾小時前",
-        "timeRangeDay": "幾天前",
+        "timeRangeToday": "今天",
+        "timeRangeYesterday": "昨天",
         "timeRangeWeek": "幾星期前", 
         "timeRangeMonth": "幾個月前",
         "timeRangeYear": "幾年前",
@@ -115,11 +129,12 @@
         },
         "settingsAppearanceHeading": "外觀",
         "settingsDarkModeToggle": "啟用夜間模式",
+        "settingsSiteThemeToggle": null, //missing translation
         "settingsHistoryButtonToggle": "啟用返回鍵",
         "settingsAdditionalFeaturesHeading": "其他功能",
-        "settingsSwipeNavigationToggle": "允許通過手勢在頁面上進行上一頁和下一頁的操作",
         "settingsUserscriptsToggle": "允許使用者指令",
         "settingsUserscriptsExplanation": {"unsafeHTML": "使用者指令允許您改變網站的行為 - <a href=\"https://github.com/minbrowser/min/wiki/userscripts\">查看更多</a>."},
+        "settingsUpdateNotificationsToggle": "自動檢查更新",
         "settingsSearchEngineHeading": "搜索引擎",
         "settingsDefaultSearchEngine": "選擇預設的搜索引擎：",
         "settingsDDGExplanation": "將 DuckDuckGo 設為預設的搜索引擎可以直接在網址欄查看搜尋結果",
@@ -176,6 +191,8 @@
         /* Download manager */
         "downloadCancel": "取消",
         "downloadStateCompleted": "已完成",
-        "downloadStateFailed": "失敗"
+        "downloadStateFailed": "失敗",
+        /* Update Notifications */
+        "updateNotificationTitle": "已有新版本"
     }
 }

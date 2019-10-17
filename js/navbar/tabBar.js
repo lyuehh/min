@@ -1,5 +1,7 @@
+var webviews = require('webviews.js')
 var browserUI = require('browserUI.js')
 var focusMode = require('focusMode.js')
+var contextMenu = require('contextMenu.js')
 var searchbar = require('searchbar/searchbar.js')
 var urlParser = require('util/urlParser.js')
 
@@ -45,10 +47,7 @@ window.tabBar = {
     var tabEl = tabBar.getTab(tabId)
     var webview = webviews.get(tabId)
 
-    var currentURL = urlParser.getDisplayURL(tabs.get(tabId).url)
-    if (currentURL === 'about:blank') {
-      currentURL = ''
-    }
+    var currentURL = urlParser.getSourceURL(tabs.get(tabId).url)
 
     document.body.classList.add('is-edit-mode')
     tabEl.classList.add('selected')
@@ -97,9 +96,13 @@ window.tabBar = {
 
     var tabTitle = tabData.title || l('newTabLabel')
 
-    tabEl.title = tabTitle
     var titleEl = tabEl.querySelector('.tab-view-contents .title')
     titleEl.textContent = tabTitle
+
+    tabEl.title = tabTitle
+    if (tabData.private) {
+      tabEl.title += ' (' + l('privateTab') + ')'
+    }
 
     var secIcon = tabEl.getElementsByClassName('icon-tab-not-secure')[0]
     if (tabData.secure === false) {
@@ -114,10 +117,10 @@ window.tabBar = {
   rerenderAll: function () {
     empty(tabBar.container)
     tabBar.tabElementMap = {}
-    for (var i = 0; i < tabs.length; i++) {
-      var el = tabBar.createElement(tabs[i])
+    for (var i = 0; i < tabs.count(); i++) {
+      var el = tabBar.createElement(tabs.getAtIndex(i))
       tabBar.container.appendChild(el)
-      tabBar.tabElementMap[tabs[i].id] = el
+      tabBar.tabElementMap[tabs.getAtIndex(i).id] = el
     }
     if (tabs.getSelected()) {
       tabBar.setActiveTab(tabs.getSelected())
@@ -130,7 +133,11 @@ window.tabBar = {
     var tabEl = document.createElement('div')
     tabEl.className = 'tab-item'
     tabEl.setAttribute('data-tab', data.id)
+
     tabEl.title = tabTitle
+    if (data.private) {
+      tabEl.title += ' (' + l('privateTab') + ')'
+    }
 
     var ec = document.createElement('div')
     ec.className = 'tab-edit-contents'
@@ -161,6 +168,7 @@ window.tabBar = {
     // 移除 关闭标签按钮
     /*
     var closeTabButton = document.createElement('i')
+    closeTabButton.classList.add('tab-icon')
     closeTabButton.classList.add('tab-close-button')
     closeTabButton.classList.add('fa')
     closeTabButton.classList.add('fa-times-circle')
@@ -176,14 +184,12 @@ window.tabBar = {
 
     if (data.private) {
       var pbIcon = document.createElement('i')
-      pbIcon.className = 'fa fa-eye-slash icon-tab-is-private tab-info-icon'
+      pbIcon.className = 'fa fa-eye-slash icon-tab-is-private tab-icon tab-info-icon'
       iconArea.appendChild(pbIcon)
-
-      vc.setAttribute('title', l('privateTab'))
     }
 
     var secIcon = document.createElement('i')
-    secIcon.className = 'fa fa-unlock icon-tab-not-secure tab-info-icon'
+    secIcon.className = 'fa fa-unlock icon-tab-not-secure tab-icon tab-info-icon'
     secIcon.title = l('connectionNotSecure')
 
     secIcon.hidden = data.secure !== false
@@ -233,7 +239,7 @@ window.tabBar = {
 
       // on keydown, if the autocomplete result doesn't change, we move the selection instead of regenerating it to avoid race conditions with typing. Adapted from https://github.com/patrickburke/jquery.inlineComplete
 
-      var v = String.fromCharCode(e.keyCode).toLowerCase()
+      var v = e.key.toLowerCase()
       var sel = this.value.substring(this.selectionStart, this.selectionEnd).indexOf(v)
 
       if (v && sel === 0) {
@@ -316,12 +322,16 @@ document.getElementById('webviews').addEventListener('click', function () {
 
 /* progress bar events */
 
-webviews.bindEvent('did-start-loading', function () {
-  var tabId = webviews.getTabFromContents(this)
+webviews.bindEvent('did-start-loading', function (webview, tabId, e) {
   progressBar.update(tabBar.getTab(tabId).querySelector('.progress-bar'), 'start')
 })
 
-webviews.bindEvent('did-stop-loading', function () {
-  var tabId = webviews.getTabFromContents(this)
+webviews.bindEvent('did-stop-loading', function (webview, tabId, e) {
   progressBar.update(tabBar.getTab(tabId).querySelector('.progress-bar'), 'finish')
+})
+
+tasks.on('tab-updated', function (id, key) {
+  if (key === 'title' || key === 'secure' || key === 'url') {
+    tabBar.rerenderTab(id)
+  }
 })

@@ -1,16 +1,10 @@
+window.userDataPath = process.argv.filter(a => a.startsWith('--user-data-path='))[0].replace('--user-data-path=', '')
+
 window.electron = require('electron')
 window.fs = require('fs')
 window.ipc = electron.ipcRenderer
 window.remote = electron.remote
 window.Dexie = require('dexie')
-
-window.webFrame = window.electron.webFrame
-window.webFrame.setVisualZoomLevelLimits(1, 1)
-window.webFrame.setLayoutZoomLevelLimits(0, 0)
-
-require('menuBarVisibility.js').initialize()
-require('navbar/tabActivity.js').init()
-require('downloadManager.js').initialize()
 
 // add a class to the body for fullscreen status
 
@@ -45,7 +39,7 @@ if (window.platformType === 'windows') {
 
 // https://remysharp.com/2010/07/21/throttling-function-calls
 
-function throttle (fn, threshhold, scope) {
+window.throttle = function (fn, threshhold, scope) {
   threshhold || (threshhold = 250)
   var last,
     deferTimer
@@ -70,7 +64,7 @@ function throttle (fn, threshhold, scope) {
 
 // https://remysharp.com/2010/07/21/throttling-function-calls
 
-function debounce (fn, delay) {
+window.debounce = function (fn, delay) {
   var timer = null
   return function () {
     var context = this
@@ -124,3 +118,30 @@ window.addEventListener('load', function () {
     }
   }, true)
 })
+
+require('dbMigration.js')
+
+require('util/settings/settings.js').initialize()
+require('menuBarVisibility.js').initialize()
+require('navbar/tabActivity.js').init()
+require('navbar/tabColor.js').initialize()
+require('navbar/goBackButton.js').initialize()
+require('places/places.js').initialize()
+require('downloadManager.js').initialize()
+require('webviewMenu.js').initialize()
+require('menuRenderer.js').initialize()
+require('keybindings.js').initialize()
+require('pdfViewer.js').initialize()
+
+// default searchbar plugins
+
+require('searchbar/placesPlugin.js').initialize()
+require('searchbar/instantAnswerPlugin.js').initialize()
+require('searchbar/openTabsPlugin.js').initialize()
+require('searchbar/bangsPlugin.js').initialize()
+require('searchbar/searchSuggestionsPlugin.js').initialize()
+require('searchbar/placeSuggestionsPlugin.js').initialize()
+require('searchbar/hostsSuggestionsPlugin.js').initialize()
+require('searchbar/keywordSuggestionsPlugin.js').initialize()
+require('searchbar/updateNotifications.js').initialize()
+require('searchbar/restoreTaskPlugin.js').initialize()

@@ -13,6 +13,10 @@
         "saveImageAs": "Save Image As",
         "searchWith": "Search with %s", //%s will be replaced with the name of the current search engine
         "copyLink": "Copy Link",
+        "selectAll": "Select All", 
+        "undo": "Undo", 
+        "redo": "Redo", 
+        "cut": "Cut", 
         "copy": "Copy", //this is a verb (as in "copy the currently-selected text")
         "paste": "Paste",
         "goBack": "Go Back",
@@ -27,15 +31,20 @@
         /* custom !bangs
         these are some of the items that show up when you press ! in the searchbar.
         Each one of these strings describes what the command will do when you run it. */
+        "showMoreBangs": "Show more",
         "viewSettings": "View Settings",
         "viewReadingList": "View Reading List",
         "takeScreenshot": "Take a Screenshot",
         "clearHistory": "Clear All History",
+        "clearHistoryConfirmation": "Clear all history and browsing data?",
         "switchToTask": "Switch to Task",
         "createTask": "Create a Task",
+        "closeTask": "Close a Task",
         "moveToTask": "Move this tab to a task",
+        "nameTask": "Name this task",
         "searchBookmarks": "Search bookmarks",
         "searchHistory": "Search history",
+        "exportBookmarks": "Export bookmarks",
         /* navbar */
         "openMenu": "Open menu", //application menu button on windows
         "enterReaderView": "Enter reader view",
@@ -51,6 +60,10 @@
         "viewTasks": "View Tasks",
         "newTask": "New Task", //"new" is a verb - it is used for a button at the bottom of the task overlay
         "defaultTaskName": "Task %n", //this is the name used for newly-created tasks; %n is replaced with a number ("task 1", "task 2", etc)
+        "taskDeleteWarning": {"unsafeHTML": "Task deleted. <a>Undo?</a>"},
+        "returnToTask": "Return to your previous task",
+        "taskDescriptionTwo": "%t and %t", //used to describe a task that has two tabs, %t is replaced with the tab titles
+        "taskDescriptionThree": "%t, %t, and %n more", //used to describe a task that has three or more tabs
         /* find in page toolbar */
         "searchInPage": "Search in Page", //this is used as the placeholder text for the textbox in the find in page toolbar
         "findMatchesSingular": "%i of %t match", //this and the next label are used to indicate which match is currently highlighted
@@ -64,7 +77,8 @@
         "timeRangeJustNow": "Just now",
         "timeRangeMinutes": "A few minutes ago",
         "timeRangeHour": "In the past hour",
-        "timeRangeDay": "In the past day",
+        "timeRangeToday": "Today",
+        "timeRangeYesterday": "Yesterday",
         "timeRangeWeek": "In the past week",
         "timeRangeMonth": "In the past month",
         "timeRangeYear": "In the past year",
@@ -115,11 +129,12 @@
         },
         "settingsAppearanceHeading": "Appearance",
         "settingsDarkModeToggle": "Enable dark mode",
+        "settingsSiteThemeToggle": "Enable site theme",
         "settingsHistoryButtonToggle": "Enable back button",
         "settingsAdditionalFeaturesHeading": "Additional Features",
-        "settingsSwipeNavigationToggle": "Enable swipe for navigating back and forth between pages.",
         "settingsUserscriptsToggle": "Enable user scripts",
         "settingsUserscriptsExplanation": {"unsafeHTML": "User scripts allow you to modify the behavior of websites - <a href=\"https://github.com/minbrowser/min/wiki/userscripts\">learn more</a>."},
+        "settingsUpdateNotificationsToggle": "Automatically check for updates",
         "settingsSearchEngineHeading": "Search Engine",
         "settingsDefaultSearchEngine": "Choose a default search engine:",
         "settingsDDGExplanation": "Set DuckDuckGo as the default search engine to see instant answers in the searchbar.",
@@ -176,6 +191,8 @@
         /* Download manager */
         "downloadCancel": "Cancel",
         "downloadStateCompleted": "Completed",
-        "downloadStateFailed": "Failed"
+        "downloadStateFailed": "Failed",
+        /* Update Notifications */
+        "updateNotificationTitle": "A new version of Min is available"
     }
 }

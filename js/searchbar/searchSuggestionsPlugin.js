@@ -1,26 +1,18 @@
 var searchbar = require('searchbar/searchbar.js')
 var searchbarPlugins = require('searchbar/searchbarPlugins.js')
-var searchbarUtils = require('searchbar/searchbarUtils.js')
 
 var urlParser = require('util/urlParser.js')
 var searchEngine = require('util/searchEngine.js')
 
-var ddgAttribution = l('resultsFromDDG')
-
-function showSearchSuggestions (text, input, event, container) {
+function showSearchSuggestions (text, input, event) {
   // TODO support search suggestions for other search engines
   if (searchEngine.getCurrent().name !== 'DuckDuckGo') {
+    searchbarPlugins.reset('searchSuggestions')
     return
   }
 
-  // if the search text is a custom bang, we should never show suggestions
-  if (getCustomBang(text)) {
-    empty(container)
-    return
-  }
-
-  if (searchbarPlugins.getResultCount() > 3) {
-    empty(container)
+  if ((searchbarPlugins.getResultCount() - searchbarPlugins.getResultCount('searchSuggestions')) > 3) {
+    searchbarPlugins.reset('searchSuggestions')
     return
   }
 
@@ -31,13 +23,18 @@ function showSearchSuggestions (text, input, event, container) {
       return response.json()
     })
     .then(function (results) {
-      empty(container)
+      searchbarPlugins.reset('searchSuggestions')
+
+      if (searchbarPlugins.getResultCount() > 3) {
+        return
+      }
 
       if (results) {
         results = results.slice(0, 3)
         results.forEach(function (result) {
           var data = {
-            title: result.phrase
+            title: result.phrase,
+            url: result.phrase
           }
 
           if (urlParser.isURL(result.phrase) || urlParser.isURLMissingProtocol(result.phrase)) { // website suggestions
@@ -46,23 +43,20 @@ function showSearchSuggestions (text, input, event, container) {
             data.icon = 'fa-search'
           }
 
-          var item = searchbarUtils.createItem(data)
-
-          item.addEventListener('click', function (e) {
-            searchbar.openURL(result.phrase, e)
-          })
-
-          container.appendChild(item)
+          var item = searchbarPlugins.addResult('searchSuggestions', data)
         })
-        searchbarPlugins.addResults('searchSuggestions', results.length)
       }
     })
 }
 
-searchbarPlugins.register('searchSuggestions', {
-  index: 4,
-  trigger: function (text) {
-    return !!text && (text.indexOf('!') !== 0 || text.trim().indexOf(' ') !== -1) && !tabs.get(tabs.getSelected()).private
-  },
-  showResults: debounce(showSearchSuggestions, 150)
-})
+function initialize () {
+  searchbarPlugins.register('searchSuggestions', {
+    index: 4,
+    trigger: function (text) {
+      return !!text && text.indexOf('!') !== 0 && !tabs.get(tabs.getSelected()).private
+    },
+    showResults: debounce(showSearchSuggestions, 100)
+  })
+}
+
+module.exports = {initialize}

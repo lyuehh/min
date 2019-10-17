@@ -4,6 +4,7 @@ var defaultKeyMap = {
   'goBack': 'mod+left',
   'goForward': 'mod+right',
   // 'enterEditMode': ['mod+l', 'mod+k'],
+  'runShortcut': 'mod+e',
   'completeSearchbar': 'mod+enter',
   'closeTab': 'mod+w',
   // 'restoreTab': 'shift+mod+t',
@@ -17,7 +18,7 @@ var defaultKeyMap = {
   'switchToPreviousTask': 'mod+[',
   'closeAllTabs': 'shift+mod+n',
   'reload': 'mod+r',
-  'showAndHideMenuBar': 'alt',
+  'showAndHideMenuBar': 'ctrl+m',
   'followLink': 'mod+enter'
 }
 /* Utility function to override default mapping with user settings */
@@ -32,4 +33,8 @@ function userKeyMap (settings) {
     })
   }
   return keyMapCopy
+}
+
+if (typeof module !== 'undefined') {
+  module.exports = {defaultKeyMap, userKeyMap}
 }

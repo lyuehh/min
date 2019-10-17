@@ -3,8 +3,8 @@ document.title = l('settingsPreferencesHeading') + ' | Min'
 var container = document.getElementById('privacy-settings-container')
 var banner = document.getElementById('restart-required-banner')
 var darkModeCheckbox = document.getElementById('checkbox-dark-mode')
+var siteThemeCheckbox = document.getElementById('checkbox-site-theme')
 var historyButtonCheckbox = document.getElementById('checkbox-history-button')
-var swipeNavigationCheckbox = document.getElementById('checkbox-swipe-navigation')
 var userscriptsCheckbox = document.getElementById('checkbox-userscripts')
 
 function showRestartRequiredBanner () {
@@ -38,7 +38,6 @@ function changeBlockingLevelSetting (level) {
     value.blockingLevel = level
     settings.set('filtering', value)
     updateBlockingLevelUI(level)
-    showRestartRequiredBanner()
   })
 }
 
@@ -80,7 +79,6 @@ blockingExceptionsInput.addEventListener('change', function () {
     }
     value.exceptionDomains = newValue
     settings.set('filtering', value)
-    showRestartRequiredBanner()
   })
 })
 
@@ -142,7 +140,6 @@ for (var contentType in contentTypes) {
           }
 
           settings.set('filtering', value)
-          banner.hidden = false
         })
       })
     })
@@ -157,7 +154,20 @@ settings.get('darkMode', function (value) {
 
 darkModeCheckbox.addEventListener('change', function (e) {
   settings.set('darkMode', this.checked)
-  showRestartRequiredBanner()
+})
+
+/* site theme setting */
+
+settings.get('siteTheme', function (value) {
+  if (value === true || value === undefined) {
+    siteThemeCheckbox.checked = true
+  } else {
+    siteThemeCheckbox.checked = false
+  }
+})
+
+siteThemeCheckbox.addEventListener('change', function (e) {
+  settings.set('siteTheme', this.checked)
 })
 
 /* history button setting */
@@ -172,22 +182,6 @@ settings.get('historyButton', function (value) {
 
 historyButtonCheckbox.addEventListener('change', function (e) {
   settings.set('historyButton', this.checked)
-  showRestartRequiredBanner()
-})
-
-/* swipe navigation settings */
-
-settings.get('swipeNavigationEnabled', function (value) {
-  if (value === true || value === undefined) {
-    swipeNavigationCheckbox.checked = true
-  } else {
-    swipeNavigationCheckbox.checked = false
-  }
-})
-
-swipeNavigationCheckbox.addEventListener('change', function (e) {
-  settings.set('swipeNavigationEnabled', this.checked)
-  showRestartRequiredBanner()
 })
 
 /* userscripts setting */
@@ -201,6 +195,22 @@ settings.get('userscriptsEnabled', function (value) {
 userscriptsCheckbox.addEventListener('change', function (e) {
   settings.set('userscriptsEnabled', this.checked)
   showRestartRequiredBanner()
+})
+
+/* update notifications setting */
+
+var updateNotificationsCheckbox = document.getElementById('checkbox-update-notifications')
+
+settings.get('updateNotificationsEnabled', function (value) {
+  if (value === false) {
+    updateNotificationsCheckbox.checked = false
+  } else {
+    updateNotificationsCheckbox.checked = true
+  }
+})
+
+updateNotificationsCheckbox.addEventListener('change', function (e) {
+  settings.set('updateNotificationsEnabled', this.checked)
 })
 
 /* default search engine setting */
@@ -242,13 +252,11 @@ searchEngineDropdown.addEventListener('change', function (e) {
   } else {
     searchEngineInput.hidden = true
     settings.set('searchEngine', {name: this.value})
-    showRestartRequiredBanner()
   }
 })
 
 searchEngineInput.addEventListener('change', function (e) {
   settings.set('searchEngine', {url: this.value})
-  showRestartRequiredBanner()
 })
 
 /* key map settings */

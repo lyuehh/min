@@ -5,12 +5,11 @@ var searchbarAutocomplete = require('searchbar/searchbarAutocomplete.js')
 var urlParser = require('util/urlParser.js')
 
 var places = require('places/places.js')
+var searchEngine = require('util/searchEngine.js')
 
 var currentResponseSent = 0
 
-var previousPlacesResults = {} // used to avoid duplicating results between places and fullTextPlaces
-
-function showSearchbarPlaceResults (text, input, event, container, pluginName = 'places') {
+function showSearchbarPlaceResults (text, input, event, pluginName = 'places') {
   var responseSent = Date.now()
 
   if (pluginName === 'fullTextPlaces') {
@@ -32,24 +31,7 @@ function showSearchbarPlaceResults (text, input, event, container, pluginName = 
 
     currentResponseSent = responseSent
 
-    // remove a previous top answer
-
-    var placesTopAnswer = searchbarPlugins.getTopAnswer(pluginName)
-
-    if (placesTopAnswer && !hasAutocompleted) {
-      placesTopAnswer.remove()
-    }
-
-    // clear previous results
-    empty(container)
-
-    if (pluginName === 'fullTextPlaces') {
-      // avoid showing results that are already being shown by the regular places plugin
-      // this assumes that places runs before fullTextPlaces
-      if (previousPlacesResults.text === text) {
-        results = results.filter(r => previousPlacesResults.results.indexOf(r.url) === -1)
-      }
-    }
+    searchbarPlugins.reset(pluginName)
 
     results = results.slice(0, resultCount)
 
@@ -65,26 +47,37 @@ function showSearchbarPlaceResults (text, input, event, container, pluginName = 
         if (autocompletionType === 0) { // the domain was autocompleted, show a domain result item
           var domain = new URL(result.url).hostname
 
-          searchbarPlugins.setTopAnswer(pluginName, searchbarUtils.createItem({
+          searchbarPlugins.setTopAnswer(pluginName, {
             title: domain,
             url: domain,
-            classList: ['fakefocus']
-          }))
+            fakeFocus: true
+          })
         }
       }
 
       var data = {
-        title: urlParser.prettyURL(result.url),
-        secondaryText: searchbarUtils.getRealTitle(result.title),
         url: result.url,
         delete: function () {
           places.deleteHistory(result.url)
         }
       }
 
+      if (searchEngine.isSearchURL(result.url)) {
+        var query = searchEngine.getSearch(result.url)
+        data.title = query.search
+        data.secondaryText = query.engine
+        data.icon = 'fa-search'
+      } else {
+        data.title = urlParser.prettyURL(urlParser.getSourceURL(result.url))
+        data.secondaryText = searchbarUtils.getRealTitle(result.title)
+      }
+
       // show a star for bookmarked items
       if (result.isBookmarked) {
         data.icon = 'fa-star'
+      } else if (result.url.startsWith(readerView.readerURL)) {
+        // show an icon to indicate that this page will open in reader view
+        data.icon = 'fa-align-left'
       }
 
       // show the metadata for the item
@@ -97,44 +90,44 @@ function showSearchbarPlaceResults (text, input, event, container, pluginName = 
         }
       }
 
+      if (autocompletionType === 1) {
+        data.fakeFocus = true
+      }
+
       // create the item
 
-      var item = searchbarUtils.createItem(data)
-
       if (autocompletionType === 1) { // if this exact URL was autocompleted, show the item as the top answer
-        item.classList.add('fakefocus')
-        searchbarPlugins.setTopAnswer(pluginName, item)
+        searchbarPlugins.setTopAnswer(pluginName, data)
       } else {
-        container.appendChild(item)
+        searchbarPlugins.addResult(pluginName, data)
       }
     })
-
-    searchbarPlugins.addResults(pluginName, results.length)
-    if (pluginName === 'places') {
-      previousPlacesResults = {text, results: results.map(r => r.url)}
-    }
   })
 }
 
-searchbarPlugins.register('places', {
-  index: 1,
-  trigger: function (text) {
-    return !!text && text.indexOf('!') !== 0
-  },
-  showResults: showSearchbarPlaceResults
-})
+function initialize () {
+  searchbarPlugins.register('places', {
+    index: 1,
+    trigger: function (text) {
+      return !!text && text.indexOf('!') !== 0
+    },
+    showResults: showSearchbarPlaceResults
+  })
 
-searchbarPlugins.register('fullTextPlaces', {
-  index: 2,
-  trigger: function (text) {
-    return !!text && text.indexOf('!') !== 0
-  },
-  showResults: debounce(function () {
-    if (searchbarPlugins.getResultCount('places') < 4 && searchbar.associatedInput) {
-      showSearchbarPlaceResults.apply(this, Array.from(arguments).concat('fullTextPlaces'))
-    } else {
-      // can't show results, clear any previous ones
-      empty(arguments[3])
-    }
-  }, 200)
-})
+  searchbarPlugins.register('fullTextPlaces', {
+    index: 2,
+    trigger: function (text) {
+      return !!text && text.indexOf('!') !== 0
+    },
+    showResults: debounce(function () {
+      if (searchbarPlugins.getResultCount('places') < 4 && searchbar.associatedInput) {
+        showSearchbarPlaceResults.apply(this, Array.from(arguments).concat('fullTextPlaces'))
+      } else {
+        // can't show results, clear any previous ones
+        searchbarPlugins.reset('fullTextPlaces')
+      }
+    }, 200)
+  })
+}
+
+module.exports = {initialize}

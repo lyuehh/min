@@ -1,12 +1,15 @@
-const settings = require('util/settings.js')
+const settings = require('util/settings/settings.js')
+const keybindings = require('keybindings.js')
 
 function initialize () {
-  settings.get('menuBarVisible', function (value) {
-    if (value === false) {
-      remote.getCurrentWindow().setMenuBarVisibility(false)
-    } else {
+  if (settings.get('menuBarVisible') === false) {
+    remote.getCurrentWindow().setMenuBarVisibility(false)
+  } else {
       // menu bar should be visible, do nothing
-    }
+  }
+
+  keybindings.defineShortcut('showAndHideMenuBar', function () {
+    toggleMenuBar()
   })
 }
 
@@ -25,13 +28,11 @@ function toggleMenuBar () {
     // use secondary menu instead of application menu on Windows
     return showSecondaryMenu()
   }
-  settings.get('menuBarVisible', function (value) {
-    if (value === false) {
-      showMenuBar()
-    } else {
-      hideMenuBar()
-    }
-  })
+  if (settings.get('menuBarVisible') === false) {
+    showMenuBar()
+  } else {
+    hideMenuBar()
+  }
 }
 
 module.exports = {initialize, toggleMenuBar}

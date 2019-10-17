@@ -1,9 +1,10 @@
 /* handles viewing pdf files using pdf.js. Recieves events from main.js will-download */
 
-var browserUI = require('browserUI.js')
-var urlParser = require('util/urlParser.js')
+const webviews = require('webviews.js')
+const browserUI = require('browserUI.js')
+const urlParser = require('util/urlParser.js')
 
-var PDFViewer = {
+const PDFViewer = {
   url: {
     base: urlParser.getFileURL(__dirname + '/pages/pdfViewer/index.html'),
     queryString: '?url=%l'
@@ -50,29 +51,10 @@ var PDFViewer = {
         browserUI.navigate(tab.id, PDFurl)
       }
     })
+  },
+  initialize: function () {
+    ipc.on('openPDF', PDFViewer.handlePDFOpenEvent)
   }
 }
 
-ipc.on('openPDF', PDFViewer.handlePDFOpenEvent)
-
-/*
-migrate legacy bookmarked PDFs to the new viewer URL
-TODO remove this in a future version
-*/
-
-var legacyPDFViewerURL = 'file://' + __dirname + '/pdfjs/web/viewer.html?url='
-
-db.transaction('rw', db.places, function () {
-  db.places.where('url').startsWith(legacyPDFViewerURL).each(function (item) {
-    var oldItemURL = item.url
-
-    var pdfBaseURL = oldItemURL.replace(legacyPDFViewerURL, '')
-    var newViewerURL = PDFViewer.url.base + PDFViewer.url.queryString.replace('%l', encodeURIComponent(pdfBaseURL))
-
-    item.url = newViewerURL
-
-    db.places.put(item).then(function () {
-      db.places.where('url').equals(oldItemURL).delete()
-    })
-  })
-})
+module.exports = PDFViewer

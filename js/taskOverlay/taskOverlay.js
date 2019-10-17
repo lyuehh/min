@@ -1,3 +1,5 @@
+var webviews = require('webviews.js')
+var keybindings = require('keybindings.js')
 var browserUI = require('browserUI.js')
 var focusMode = require('focusMode.js')
 
@@ -35,10 +37,12 @@ window.taskOverlay = {
   overlayElement: document.getElementById('task-overlay'),
   isShown: false,
   tabDragula: dragula({
-    direction: 'vertical'
+    direction: 'vertical',
+    mirrorContainer: document.getElementById('task-overlay')
   }),
   taskDragula: dragula({
     direction: 'vertical',
+    mirrorContainer: document.getElementById('task-overlay'),
     containers: [taskContainer],
     moves: function (el, source, handle, sibling) {
       // ignore drag events that come from a tab element, since they will be handled by the other dragula instance
@@ -84,13 +88,13 @@ window.taskOverlay = {
 
     var currentTabElement = document.querySelector('.task-tab-item[data-tab="{id}"]'.replace('{id}', tasks.getSelected().tabs.getSelected()))
 
-    if (currentTabElement) {
-      currentTabElement.scrollIntoViewIfNeeded()
-      currentTabElement.classList.add('fakefocus')
-    }
-
     // un-hide the overlay
     this.overlayElement.hidden = false
+
+    if (currentTabElement) {
+      currentTabElement.classList.add('fakefocus')
+      currentTabElement.focus()
+    }
   },
 
   hide: function () {
@@ -109,6 +113,13 @@ window.taskOverlay = {
       this.tabDragula.containers = []
 
       document.body.classList.remove('task-overlay-is-shown')
+
+      // close any tasks that are pending deletion
+
+      var pendingDeleteTasks = document.body.querySelectorAll('.task-container.deleting')
+      for (var i = 0; i < pendingDeleteTasks.length; i++) {
+        browserUI.closeTask(pendingDeleteTasks[i].getAttribute('data-task'))
+      }
 
       // if the current tab has been deleted, switch to the most recent one
 
@@ -147,6 +158,18 @@ document.getElementById('navbar').addEventListener('wheel', function (e) {
   }
 })
 
+keybindings.defineShortcut('toggleTasks', function () {
+  if (taskOverlay.isShown) {
+    taskOverlay.hide()
+  } else {
+    taskOverlay.show()
+  }
+})
+
+keybindings.defineShortcut({keys: 'esc'}, function (e) {
+  taskOverlay.hide()
+})
+
 function getTaskContainer (id) {
   return document.querySelector('.task-container[data-task="{id}"]'.replace('{id}', id))
 }
@@ -167,7 +190,7 @@ taskOverlay.tabDragula.on('drop', function (el, target, source, sibling) { // se
 
   // if the old task has no tabs left in it, destroy it
 
-  if (previousTask.tabs.length === 0) {
+  if (previousTask.tabs.count() === 0) {
     browserUI.closeTask(previousTask.id)
     getTaskContainer(previousTask.id).remove()
   }
@@ -177,7 +200,7 @@ taskOverlay.tabDragula.on('drop', function (el, target, source, sibling) { // se
     var newIdx = newTask.tabs.getIndex(adjacentTadId)
   } else {
     // tab was inserted at end
-    var newIdx = newTask.tabs.length
+    var newIdx = newTask.tabs.count()
   }
 
   // insert the tab at the correct spot
@@ -208,3 +231,77 @@ taskOverlay.taskDragula.on('drop', function (el, target, source, sibling) {
   // reinsert the task
   tasks.splice(newIdx, 0, droppedTask)
 })
+
+/* auto-scroll the container when the item is dragged to the edge of the screen */
+
+var draggingScrollInterval = null
+
+function onMouseMoveWhileDragging (e) {
+  clearInterval(draggingScrollInterval)
+  if (e.pageY < 100) {
+    draggingScrollInterval = setInterval(function () {
+      taskOverlay.overlayElement.scrollBy(0, -5)
+    }, 16)
+  } else if (e.pageY > (window.innerHeight - 125)) {
+    draggingScrollInterval = setInterval(function () {
+      taskOverlay.overlayElement.scrollBy(0, 5)
+    }, 16)
+  }
+}
+
+function startMouseDragRecording () {
+  window.addEventListener('mousemove', onMouseMoveWhileDragging)
+}
+
+function endMouseDragRecording () {
+  window.removeEventListener('mousemove', onMouseMoveWhileDragging)
+  clearInterval(draggingScrollInterval)
+}
+
+taskOverlay.tabDragula.on('drag', function () {
+  startMouseDragRecording()
+})
+
+taskOverlay.tabDragula.on('dragend', function () {
+  endMouseDragRecording()
+})
+
+taskOverlay.taskDragula.on('drag', function () {
+  startMouseDragRecording()
+})
+
+taskOverlay.taskDragula.on('dragend', function () {
+  endMouseDragRecording()
+})
+
+/* survey */
+
+var taskSurveyBanner = document.getElementById('task-overlay-survey-banner')
+var taskSurveyLink = document.getElementById('task-overlay-survey-link')
+var taskSurveyButton = document.getElementById('task-overlay-survey-close-button')
+
+if (!localStorage.getItem('110tasksurvey')) {
+  fetch('https://minbrowser.github.io/min/survey/tasksSurvey.json')
+    .then(response => response.json())
+    .then(function (data) {
+      if (data.available) {
+        taskSurveyBanner.hidden = false
+        taskSurveyLink.addEventListener('click', function (e) {
+          taskOverlay.hide()
+          browserUI.addTab(tabs.add({
+            url: data.url
+          }), {
+            enterEditMode: false
+          })
+          localStorage.setItem('110tasksurvey', 'true')
+          taskSurveyBanner.hidden = true
+        })
+        taskSurveyButton.addEventListener('click', function (e) {
+          e.stopPropagation()
+          localStorage.setItem('110tasksurvey', 'false')
+          taskSurveyBanner.hidden = true
+        })
+      }
+    })
+    .catch(e => console.error('error getting tasks survey', e))
+}

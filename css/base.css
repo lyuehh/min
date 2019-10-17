@@ -13,6 +13,7 @@ body.mac * {
 }
 /* buttons are styled like normal text by default */
 button {
+	-webkit-appearance: none;
 	background: none;
 	border: none;
 	color: inherit;
@@ -24,4 +25,9 @@ html {
 	height: 100%;
 	overflow: hidden;
 	-webkit-user-select: none;
+}
+
+a {
+	color: royalblue;
+	text-decoration: none;
 }

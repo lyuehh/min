@@ -1,3 +1,5 @@
+var webviews = require('webviews.js')
+
 var webviewGestures = {
   showBackArrow: function () {
     // this is temporarily disabled until we find a way to make it work with BrowserViews
@@ -81,11 +83,7 @@ function onSwipeGestureLowVelocity () {
   if (horizontalMouseMove - beginningScrollRight > 150 && Math.abs(horizontalMouseMove / verticalMouseMove) > 2.5) {
     if (beginningScrollRight < 10) {
       resetCounters()
-      settings.get('swipeNavigationEnabled', function (value) {
-        if (value === true || value === undefined) {
-          webviews.get(tabs.getSelected()).goForward()
-        }
-      })
+      webviews.get(tabs.getSelected()).goForward()
     }
   }
 
@@ -93,11 +91,7 @@ function onSwipeGestureLowVelocity () {
   if (horizontalMouseMove + beginningScrollLeft < -150 && Math.abs(horizontalMouseMove / verticalMouseMove) > 2.5) {
     if (beginningScrollLeft < 10) {
       resetCounters()
-      settings.get('swipeNavigationEnabled', function (value) {
-        if (value === true || value === undefined) {
-          webviews.get(tabs.getSelected()).goBack()
-        }
-      })
+      webviews.goBackIgnoringRedirects(tabs.getSelected())
     }
   }
 }
@@ -177,3 +171,5 @@ webviews.bindIPC('wheel-event', function (webview, tabId, e) {
     }
   }
 })
+
+module.exports = webviewGestures

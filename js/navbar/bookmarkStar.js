@@ -1,10 +1,10 @@
-const db = require('util/database.js')
+const db = require('util/database.js').db
 const places = require('places/places.js')
 
 const bookmarkStar = {
   create: function (tabId) {
     const star = document.createElement('i')
-    star.className = 'fa fa-star-o bookmarks-button' // alternative icon is fa-bookmark
+    star.className = 'fa fa-star-o tab-icon bookmarks-button' // alternative icon is fa-bookmark
 
     star.addEventListener('click', function (e) {
       bookmarkStar.onClick(tabId, star)
@@ -23,7 +23,7 @@ const bookmarkStar = {
   update: function (tabId, star) {
     const currentURL = tabs.get(tabId).url
 
-    if (!currentURL || currentURL === 'about:blank') { // no url, can't be bookmarked
+    if (!currentURL) { // no url, can't be bookmarked
       star.hidden = true
     } else {
       star.hidden = false

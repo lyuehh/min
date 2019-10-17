@@ -12,38 +12,18 @@ const outFile = path.resolve(__dirname, '../dist/bundle.js')
 /* avoid adding modules to this list, require() them from the correct place instead */
 const legacyModules = [
   'dist/localization.build.js',
+  'js/tabState.js',
   'js/default.js',
   'js/windowsCaptionButtons.js',
-  'js/util/database.js',
-  'js/util/defaultKeyMap.js',
-  'js/util/settings.js',
-  'js/tabState.js',
-  'js/filteringRenderer.js',
-  'js/webviews.js',
-  'js/webviewMenu.js',
-  'js/searchbar/placesPlugin.js',
-  'js/searchbar/instantAnswerPlugin.js',
-  'js/searchbar/openTabsPlugin.js',
-  'js/searchbar/bangsPlugin.js',
   'js/searchbar/customBangs.js',
-  'js/searchbar/searchSuggestionsPlugin.js',
-  'js/searchbar/placeSuggestionsPlugin.js',
-  'js/searchbar/hostsSuggestionsPlugin.js',
-  'js/searchbar/keywordSuggestionsPlugin.js',
   'js/readerview.js',
   'js/navbar/tabBar.js',
   // 'js/taskOverlay/taskOverlay.js',
   'js/navbar/addTabButton.js',
-  'js/navbar/goBackButton.js',
   'js/navbar/menuButton.js',
-  'js/keybindings.js',
-  'js/pdfViewer.js',
-  'js/findinpage.js',
   'js/userscripts.js',
-  'js/deferredLoad.js',
   'js/sessionRestore.js',
-  'js/util/theme.js',
-  'js/webviewGestures.js'
+  'js/util/theme.js'
 ]
 
 function buildBrowser () {

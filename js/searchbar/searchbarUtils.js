@@ -12,14 +12,18 @@ data:
 title: string - the title of the item
 metadata: array - a list of strings to include (separated by hyphens) in front of the secondary text
 secondaryText: string - the item's secondary text
-url: string - the item's url (if there is one).
 icon: string - the name of a font awesome icon.
 image: string - the URL of an image to show
 iconImage: string - the URL of an image to show as an icon
 descriptionBlock: string - the text in the description block,
 attribution: string - attribution text to display when the item is focused
 delete: function - a function to call to delete the result item when a left swipe is detected
+showDeleteButton - whether to show an [x] button that calls the delete function
+button: {icon: string, fn: function} a button that will appear to the right of the item (if showDeleteButton is false)
 classList: array - a list of classes to add to the item
+fakeFocus - boolean - whether the item should appear to be focused,
+colorCircle - string - display a color circle with a given color
+opacity - number - the opacity of the item
 */
 
 function createItem (data) {
@@ -32,6 +36,22 @@ function createItem (data) {
     for (var i = 0; i < data.classList.length; i++) {
       item.classList.add(data.classList[i])
     }
+  }
+
+  if (data.fakeFocus) {
+    item.classList.add('fakefocus')
+  }
+
+  if (data.opacity) {
+    item.style.opacity = data.opacity
+  }
+
+  if (data.colorCircle) {
+    var colorCircle = document.createElement('div')
+    colorCircle.className = 'image color-circle'
+    colorCircle.style.backgroundColor = data.colorCircle
+
+    item.appendChild(colorCircle)
   }
 
   if (data.icon) {
@@ -52,14 +72,6 @@ function createItem (data) {
     title.textContent = data.title
 
     item.appendChild(title)
-  }
-
-  if (data.url) {
-    item.setAttribute('data-url', data.url)
-
-    item.addEventListener('click', function (e) {
-      searchbar.openURL(data.url, e)
-    })
   }
 
   if (data.secondaryText) {
@@ -130,6 +142,32 @@ function createItem (data) {
         }, 200)
       }
     })
+  }
+
+  // delete button is just a pre-defined action button
+  if (data.showDeleteButton) {
+    data.button = {
+      icon: 'fa-close',
+      fn: function () {
+        data.delete(item)
+        item.parentNode.removeChild(item)
+      }
+    }
+  }
+
+  if (data.button) {
+    var button = document.createElement('button')
+    button.classList.add('action-button')
+    button.classList.add('fa')
+    button.classList.add(data.button.icon)
+    button.tabIndex = -1
+
+    button.addEventListener('click', function (e) {
+      e.stopPropagation()
+      data.button.fn(this)
+    })
+    item.appendChild(button)
+    item.classList.add('has-action-button')
   }
 
   if (data.click) {

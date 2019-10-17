@@ -1,6 +1,27 @@
+var webviews = require('webviews.js')
 var browserUI = require('browserUI.js')
 var searchbarUtils = require('searchbar/searchbarUtils.js')
 var urlParser = require('util/urlParser.js')
+var searchEngine = require('util/searchEngine.js')
+
+function getTaskRelativeDate (task) {
+  var minimumTime = new Date()
+  minimumTime.setHours(0)
+  minimumTime.setMinutes(0)
+  minimumTime.setSeconds(0)
+  minimumTime = minimumTime.getTime()
+  minimumTime -= (5 * 24 * 60 * 60 * 1000)
+
+  var time = tasks.getLastActivity(task.id)
+  var d = new Date(time)
+
+  // don't show times for recent tasks in order to save space
+  if (time > minimumTime) {
+    return null
+  } else {
+    return new Intl.DateTimeFormat(navigator.language, {month: 'long', day: 'numeric', year: 'numeric'}).format(d)
+  }
+}
 
 function getTaskContainer (id) {
   return document.querySelector('.task-container[data-task="{id}"]'.replace('{id}', id))
@@ -21,13 +42,31 @@ function removeTabFromOverlay (tabId, task) {
   }
 }
 
+function toggleCollapsed (taskContainer, task) {
+  tasks.get(task.id).collapsed = !tasks.isCollapsed(task.id)
+  taskContainer.classList.toggle('collapsed')
+
+  var collapseButton = taskContainer.querySelector('.task-collapse-button')
+  collapseButton.classList.toggle('fa-angle-right')
+  collapseButton.classList.toggle('fa-angle-down')
+}
+
 var TaskOverlayBuilder = {
   create: {
     task: {
-      dragHandle: function () {
-        var dragHandle = document.createElement('i')
-        dragHandle.className = 'fa fa-arrows task-drag-handle'
-        return dragHandle
+      collapseButton: function (taskContainer, task) {
+        var collapseButton = document.createElement('i')
+        collapseButton.className = 'fa task-collapse-button'
+        if (tasks.isCollapsed(task.id)) {
+          collapseButton.classList.add('fa-angle-right')
+        } else {
+          collapseButton.classList.add('fa-angle-down')
+        }
+        collapseButton.addEventListener('click', function (e) {
+          e.stopPropagation()
+          toggleCollapsed(taskContainer, task)
+        })
+        return collapseButton
       },
       nameInputField: function (task, taskIndex) {
         var input = document.createElement('input')
@@ -46,29 +85,57 @@ var TaskOverlayBuilder = {
           task.name = this.value
         })
 
-        input.addEventListener('focus', function () {
+        input.addEventListener('focusin', function (e) {
+          if (tasks.isCollapsed(task.id)) {
+            this.blur()
+            return
+          }
           this.select()
         })
         return input
       },
       deleteButton: function (container, task) {
         var deleteButton = document.createElement('i')
-        deleteButton.className = 'fa fa-trash-o'
+        deleteButton.className = 'fa fa-trash-o task-delete-button'
 
         deleteButton.addEventListener('click', function (e) {
-          container.remove()
-          browserUI.closeTask(task.id)
+          if (task.tabs.isEmpty()) {
+            container.remove()
+            browserUI.closeTask(task.id)
+          } else {
+            container.classList.add('deleting')
+            setTimeout(function () {
+              if (container.classList.contains('deleting')) {
+                container.style.opacity = 0
+                // transitionend would be nice here, but it doesn't work if the element is removed from the DOM
+                setTimeout(function () {
+                  container.remove()
+                  browserUI.closeTask(task.id)
+                }, 500)
+              }
+            }, 10000)
+          }
         })
         return deleteButton
+      },
+      deleteWarning: function (container, task) {
+        var deleteWarning = document.createElement('div')
+        deleteWarning.className = 'task-delete-warning'
+
+        deleteWarning.innerHTML = l('taskDeleteWarning').unsafeHTML
+        deleteWarning.addEventListener('click', function (e) {
+          container.classList.remove('deleting')
+        })
+        return deleteWarning
       },
 
       actionContainer: function (taskContainer, task, taskIndex) {
         var taskActionContainer = document.createElement('div')
         taskActionContainer.className = 'task-action-container'
 
-        // add the drag handle
-        var dragHandle = this.dragHandle()
-        taskActionContainer.appendChild(dragHandle)
+        // add the collapse button
+        var collapseButton = this.collapseButton(taskContainer, task)
+        taskActionContainer.appendChild(collapseButton)
 
         // add the input for the task name
         var input = this.nameInputField(task, taskIndex)
@@ -80,10 +147,51 @@ var TaskOverlayBuilder = {
 
         return taskActionContainer
       },
+      infoContainer: function (task) {
+        var infoContainer = document.createElement('div')
+        infoContainer.className = 'task-info-container'
+
+        var date = getTaskRelativeDate(task)
+
+        if (date) {
+          var dateEl = document.createElement('span')
+          dateEl.className = 'task-date'
+          dateEl.textContent = date
+          infoContainer.appendChild(dateEl)
+        }
+
+        var lastTabEl = document.createElement('span')
+        lastTabEl.className = 'task-last-tab-title'
+        var lastTabTitle = task.tabs.get().sort((a, b) => b.lastActivity - a.lastActivity)[0].title
+
+        if (lastTabTitle) {
+          lastTabTitle = searchbarUtils.getRealTitle(lastTabTitle)
+          if (lastTabTitle.length > 40) {
+            lastTabTitle = lastTabTitle.substring(0, 40) + '...'
+          }
+          lastTabEl.textContent = searchbarUtils.getRealTitle(lastTabTitle)
+        }
+        infoContainer.appendChild(lastTabEl)
+
+        return infoContainer
+      },
       container: function (task, taskIndex) {
         var container = document.createElement('div')
         container.className = 'task-container'
+
+        if (task.id !== tasks.getSelected().id && tasks.isCollapsed(task.id)) {
+          container.classList.add('collapsed')
+        }
+        if (task.id === tasks.getSelected().id) {
+          container.classList.add('selected')
+        }
         container.setAttribute('data-task', task.id)
+
+        container.addEventListener('click', function (e) {
+          if (tasks.isCollapsed(task.id)) {
+            toggleCollapsed(container, task)
+          }
+        })
 
         var taskActionContainer = this.actionContainer(
           container,
@@ -91,6 +199,12 @@ var TaskOverlayBuilder = {
           taskIndex
         )
         container.appendChild(taskActionContainer)
+
+        var infoContainer = this.infoContainer(task)
+        container.appendChild(infoContainer)
+
+        var deleteWarning = this.deleteWarning(container, task)
+        container.appendChild(deleteWarning)
 
         var tabContainer = TaskOverlayBuilder.create.tab.container(task)
         container.appendChild(tabContainer)
@@ -101,16 +215,46 @@ var TaskOverlayBuilder = {
 
     tab: {
       element: function (tabContainer, task, tab) {
-        var el = searchbarUtils.createItem({
-          title: tab.title || l('newTabLabel'),
-          secondaryText: urlParser.basicURL(tab.url),
+        var data = {
           classList: ['task-tab-item'],
           delete: function () {
             removeTabFromOverlay(tab.id, task)
+          },
+          showDeleteButton: true
+        }
+
+        if (tab.private) {
+          data.icon = 'fa-eye-slash'
+        } else if (tab.favicon) {
+          data.iconImage = tab.favicon.url
+
+          if (tab.favicon.luminance && tab.favicon.luminance < 70) {
+            data.classList.push('dark-favicon')
+          }
+        }
+
+        var source = urlParser.getSourceURL(tab.url)
+        var searchQuery = searchEngine.getSearch(source)
+
+        if (searchQuery) {
+          data.title = searchQuery.search
+          data.secondaryText = searchQuery.engine
+        } else {
+          data.title = tab.title || l('newTabLabel')
+          data.secondaryText = urlParser.basicURL(source)
+        }
+
+        var el = searchbarUtils.createItem(data)
+
+        el.tabIndex = 0
+        el.setAttribute('data-tab', tab.id)
+
+        // return or space should act like click
+        el.addEventListener('keydown', function (e) {
+          if (e.keyCode === 13 || e.keyCode === 32) {
+            el.click()
           }
         })
-
-        el.setAttribute('data-tab', tab.id)
 
         el.addEventListener('click', function (e) {
           browserUI.switchToTask(this.parentNode.getAttribute('data-task'))
@@ -118,9 +262,6 @@ var TaskOverlayBuilder = {
 
           taskOverlay.hide()
         })
-
-        var closeTabButton = this.closeButton(el)
-        el.querySelector('.title').appendChild(closeTabButton)
         return el
       },
 
@@ -130,37 +271,17 @@ var TaskOverlayBuilder = {
         tabContainer.setAttribute('data-task', task.id)
 
         if (task.tabs) {
-          for (var i = 0; i < task.tabs.length; i++) {
-            var el = this.element(tabContainer, task, task.tabs[i])
+          for (var i = 0; i < task.tabs.count(); i++) {
+            var el = this.element(tabContainer, task, task.tabs.getAtIndex(i))
             tabContainer.appendChild(el)
           }
         }
 
         return tabContainer
-      },
-
-      closeButton: function (taskTabElement) {
-        var closeTabButton = document.createElement('button')
-        closeTabButton.className = 'closeTab fa fa-close'
-
-        closeTabButton.addEventListener('click', function (e) {
-          var tabId = taskTabElement.getAttribute('data-tab')
-          var taskId = taskTabElement.parentNode.getAttribute('data-task')
-
-          removeTabFromOverlay(tabId, tasks.get(taskId))
-          taskTabElement.parentNode.removeChild(taskTabElement)
-
-          // do not close taskOverlay
-          // (the close button is part of the tab-element, so a click on it
-          // would otherwise trigger opening this tab, and it was just closed)
-          e.stopImmediatePropagation()
-        })
-
-        return closeTabButton
       }
     }
   }
-  // extend with other helper functions?
+// extend with other helper functions?
 }
 
 module.exports = function createTaskContainer (task, index) {

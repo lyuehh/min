@@ -13,6 +13,10 @@
         "saveImageAs": "图片另存为",
         "searchWith": "在 %s 中搜索", //%s will be replaced with the name of the current search engine
         "copyLink": "复制链接",
+        "selectAll": null, // Missing Translation
+        "undo": null, // Missing Translation
+        "redo": null, // Missing Translation
+        "cut": null, // Missing Translation
         "copy": "复制", //this is a verb (as in "copy the currently-selected text")
         "paste": "粘贴",
         "goBack": "后退",
@@ -27,15 +31,20 @@
         /* custom !bangs
         these are some of the items that show up when you press ! in the searchbar.
         Each one of these strings describes what the command will do when you run it. */
+        "showMoreBangs": null, //missing translation
         "viewSettings": "查看设置界面",
         "viewReadingList": "显示阅读列表",
         "takeScreenshot": "截图",
         "clearHistory": "清除所有历史记录",
+        "clearHistoryConfirmation": null, //missing translation
         "switchToTask": "切换到标签组列表",
+        "closeTask": null, //missing translation
         "createTask": "新建标签组",
         "moveToTask": "以当前标签页创建一个新的标签组",
+        "nameTask": null, //missing translation
         "searchBookmarks": "搜索书签内容",
         "searchHistory": null, //missing translation
+        "exportBookmarks": null, //missing translation
         /* navbar */
         "openMenu": null, //missing translation
         "enterReaderView": "进入阅读模式",
@@ -51,6 +60,10 @@
         "viewTasks": "查看标签组",
         "newTask": "新建标签组", //"new" is a verb - it is used for a button at the bottom of the task overlay
         "defaultTaskName": "标签组 %n", //this is the name used for newly-created tasks; %n is replaced with a number ("task 1", "task 2", etc)
+        "taskDeleteWarning": {"unsafeHTML": null}, //missing translation
+        "returnToTask": null, //missing translation
+        "taskDescriptionTwo": null, //missing translation
+        "taskDescriptionThree": null, //missing translation
         /* find in page toolbar */
         "searchInPage": "搜索当前页", //this is used as the placeholder text for the textbox in the find in page toolbar
         "findMatchesSingular": "%i/%t", //this and the next label are used to indicate which match is currently highlighted
@@ -64,7 +77,8 @@
         "timeRangeJustNow": "几秒前",
         "timeRangeMinutes": "几分钟前",
         "timeRangeHour": "几小时前",
-        "timeRangeDay": "几天前",
+        "timeRangeToday": null, //missing translation
+        "timeRangeYesterday": null, //missing translation
         "timeRangeWeek": "几星期前",
         "timeRangeMonth": "几个月前",
         "timeRangeYear": "几年前",
@@ -115,11 +129,12 @@
         },
         "settingsAppearanceHeading": "外观",
         "settingsDarkModeToggle": "启用夜间模式",
+        "settingsSiteThemeToggle": null, //missing translation
         "settingsHistoryButtonToggle": "启用返回键",
         "settingsAdditionalFeaturesHeading": "其他功能",
-        "settingsSwipeNavigationToggle": "允许通过手势在页面上进行前进和后退操作。",
         "settingsUserscriptsToggle": "允许使用者指令",
         "settingsUserscriptsExplanation": {"unsafeHTML": "使用者指令允许您改变网站行为 - <a href=\"https://github.com/minbrowser/min/wiki/userscripts\">查看更多</a>."},
+        "settingsUpdateNotificationsToggle": null, //missing translation
         "settingsSearchEngineHeading": "搜索引擎",
         "settingsDefaultSearchEngine": "选择默认的搜索引擎:",
         "settingsDDGExplanation": "将 DuckDuckGo 设为默认的搜索引擎可以直接在搜索栏查看搜索结果。",
@@ -176,6 +191,8 @@
         /* Download manager */
         "downloadCancel": null, //missing translation
         "downloadStateCompleted": null, //missing translation
-        "downloadStateFailed": null //missing translation
+        "downloadStateFailed": null, //missing translation
+        /* Update Notifications */
+        "updateNotificationTitle": null //missing translation
     }
 }

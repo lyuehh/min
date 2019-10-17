@@ -1,12 +1,17 @@
+var bangsPlugin = require('searchbar/bangsPlugin.js')
+
 /* list of the available custom !bangs */
+var webviews = require('webviews.js')
 var browserUI = require('browserUI.js')
 var focusMode = require('focusMode.js')
 var searchbar = require('searchbar/searchbar.js')
-var searchbarUtils = require('searchbar/searchbarUtils.js')
+var searchbarPlugins = require('searchbar/searchbarPlugins.js')
 var places = require('places/places.js')
+var urlParser = require('util/urlParser.js')
+var {db} = require('util/database.js')
 const formatRelativeDate = require('util/relativeDate.js')
 
-registerCustomBang({
+bangsPlugin.registerCustomBang({
   phrase: '!settings',
   snippet: l('viewSettings'),
   isAction: true,
@@ -15,7 +20,7 @@ registerCustomBang({
   }
 })
 
-registerCustomBang({
+bangsPlugin.registerCustomBang({
   phrase: '!back',
   snippet: l('goBack'),
   isAction: true,
@@ -26,7 +31,7 @@ registerCustomBang({
   }
 })
 
-registerCustomBang({
+bangsPlugin.registerCustomBang({
   phrase: '!forward',
   snippet: l('goForward'),
   isAction: true,
@@ -37,7 +42,7 @@ registerCustomBang({
   }
 })
 
-registerCustomBang({
+bangsPlugin.registerCustomBang({
   phrase: '!screenshot',
   snippet: l('takeScreenshot'),
   isAction: true,
@@ -50,12 +55,14 @@ registerCustomBang({
   }
 })
 
-registerCustomBang({
+bangsPlugin.registerCustomBang({
   phrase: '!clearhistory',
   snippet: l('clearHistory'),
   isAction: true,
   fn: function (text) {
-    places.deleteAllHistory()
+    if (confirm(l('clearHistoryConfirmation'))) {
+      places.deleteAllHistory()
+    }
   }
 })
 
@@ -67,7 +74,7 @@ function getTaskByNameOrNumber (text) {
   )
 }
 
-registerCustomBang({
+bangsPlugin.registerCustomBang({
   phrase: '!task',
   snippet: l('switchToTask'),
   isAction: false,
@@ -94,7 +101,7 @@ registerCustomBang({
   }
 })
 
-registerCustomBang({
+bangsPlugin.registerCustomBang({
   phrase: '!newtask',
   snippet: l('createTask'),
   isAction: true,
@@ -116,7 +123,7 @@ registerCustomBang({
   }
 })
 
-registerCustomBang({
+bangsPlugin.registerCustomBang({
   phrase: '!movetotask',
   snippet: l('moveToTask'),
   isAction: false,
@@ -133,25 +140,25 @@ registerCustomBang({
     tabs.destroy(currentTab.id)
 
     // make sure the task has at least one tab in it
-    if (tabs.get().length === 0) {
+    if (tabs.count() === 0) {
       tabs.add()
     }
 
     var newTask = getTaskByNameOrNumber(text)
 
     if (newTask) {
-      newTask.tabs.add(currentTab)
+      newTask.tabs.add(currentTab, {atEnd: true})
     } else {
       // create a new task with the given name
-      var newTask = tasks.get(tasks.add())
+      var newTask = tasks.get(tasks.add(undefined, tasks.getIndex(tasks.getSelected().id) + 1))
       newTask.name = text
 
       newTask.tabs.add(currentTab)
     }
 
-    // taskOverlay.show()
     browserUI.switchToTask(newTask.id)
     browserUI.switchToTab(currentTab.id)
+    // taskOverlay.show()
 
     setTimeout(function () {
       // taskOverlay.hide()
@@ -159,35 +166,71 @@ registerCustomBang({
   }
 })
 
-registerCustomBang({
+bangsPlugin.registerCustomBang({
+  phrase: '!closetask',
+  snippet: l('closeTask'),
+  isAction: false,
+  fn: function (text) {
+    var currentTask = tasks.getSelected()
+    var taskToClose
+
+    if (text) {
+      taskToClose = getTaskByNameOrNumber(text)
+    } else {
+      taskToClose = tasks.getSelected()
+    }
+
+    if (taskToClose) {
+      browserUI.closeTask(taskToClose.id)
+      if (currentTask.id === taskToClose.id) {
+        taskOverlay.show()
+        setTimeout(function () {
+          taskOverlay.hide()
+        }, 600)
+      }
+    }
+  }
+})
+
+bangsPlugin.registerCustomBang({
+  phrase: '!nametask',
+  snippet: l('nameTask'),
+  isAction: false,
+  fn: function (text) {
+    tasks.getSelected().name = text
+  }
+})
+
+bangsPlugin.registerCustomBang({
   phrase: '!bookmarks',
   snippet: l('searchBookmarks'),
   isAction: false,
-  showSuggestions: function (text, input, event, container) {
+  showSuggestions: function (text, input, event) {
     places.searchPlaces(text, function (results) {
-      empty(container)
+      searchbarPlugins.reset('bangs')
 
       var lastRelativeDate = '' // used to generate headings
 
       results.sort(function (a, b) {
         // order by last visit
         return b.lastVisit - a.lastVisit
-      }).forEach(function (result) {
+      }).forEach(function (result, index) {
         var thisRelativeDate = formatRelativeDate(result.lastVisit)
         if (thisRelativeDate !== lastRelativeDate) {
-          var heading = searchbarUtils.createHeading({text: thisRelativeDate})
-          container.appendChild(heading)
+          searchbarPlugins.addHeading('bangs', {text: thisRelativeDate})
           lastRelativeDate = thisRelativeDate
         }
-        container.appendChild(searchbarUtils.createItem({
+        searchbarPlugins.addResult('bangs', {
           title: result.title,
           icon: 'fa-star',
-          secondaryText: result.url,
+          secondaryText: urlParser.getSourceURL(result.url),
+          fakeFocus: index === 0 && text,
           url: result.url,
           delete: function () {
             places.deleteHistory(result.url)
-          }
-        }))
+          },
+          showDeleteButton: true
+        })
       })
     }, {searchBookmarks: true, limit: (text ? 100 : Infinity)})
   },
@@ -206,34 +249,35 @@ registerCustomBang({
   }
 })
 
-registerCustomBang({
+bangsPlugin.registerCustomBang({
   phrase: '!history',
   snippet: l('searchHistory'),
   isAction: false,
-  showSuggestions: function (text, input, event, container) {
+  showSuggestions: function (text, input, event) {
     places.searchPlaces(text, function (results) {
-      empty(container)
+      searchbarPlugins.reset('bangs')
 
       var lastRelativeDate = '' // used to generate headings
 
       results.sort(function (a, b) {
         // order by last visit
         return b.lastVisit - a.lastVisit
-      }).slice(0, 250).forEach(function (result) {
+      }).slice(0, 250).forEach(function (result, index) {
         var thisRelativeDate = formatRelativeDate(result.lastVisit)
         if (thisRelativeDate !== lastRelativeDate) {
-          var heading = searchbarUtils.createHeading({text: thisRelativeDate})
-          container.appendChild(heading)
+          searchbarPlugins.addHeading('bangs', {text: thisRelativeDate})
           lastRelativeDate = thisRelativeDate
         }
-        container.appendChild(searchbarUtils.createItem({
+        searchbarPlugins.addResult('bangs', {
           title: result.title,
-          secondaryText: result.url,
+          secondaryText: urlParser.getSourceURL(result.url),
+          fakeFocus: index === 0 && text,
           url: result.url,
           delete: function () {
             places.deleteHistory(result.url)
-          }
-        }))
+          },
+          showDeleteButton: true
+        })
       })
     }, {limit: Infinity})
   },
@@ -249,5 +293,48 @@ registerCustomBang({
         searchbar.openURL(results[0].url, null)
       }
     }, {limit: Infinity})
+  }
+})
+
+bangsPlugin.registerCustomBang({
+  phrase: '!exportbookmarks',
+  snippet: l('exportBookmarks'),
+  isAction: true,
+  fn: function () {
+    // build the tree structure
+    var root = document.createElement('body')
+    var heading = document.createElement('h1')
+    heading.textContent = 'Bookmarks'
+    root.appendChild(heading)
+    var innerRoot = document.createElement('dl')
+    root.appendChild(innerRoot)
+
+    var folderRoot = document.createElement('dt')
+    innerRoot.appendChild(folderRoot)
+    var folderHeading = document.createElement('h3')
+    folderHeading.textContent = 'Min Bookmarks'
+    folderRoot.appendChild(folderHeading)
+    var folderBookmarksList = document.createElement('dl')
+    folderRoot.appendChild(folderBookmarksList)
+
+    db.places.each(function (item) {
+      if (item.isBookmarked) {
+        var itemRoot = document.createElement('dt')
+        var a = document.createElement('a')
+        itemRoot.appendChild(a)
+        folderBookmarksList.appendChild(itemRoot)
+
+        a.href = urlParser.getSourceURL(item.url)
+        a.setAttribute('add_date', Math.round(item.lastVisit / 1000))
+        a.textContent = item.title
+        // Chrome will only parse the file if it contains newlines after each bookmark
+        var textSpan = document.createTextNode('\n')
+        folderBookmarksList.appendChild(textSpan)
+      }
+    }).then(function () {
+      // save the result
+      var savePath = electron.remote.dialog.showSaveDialogSync({defaultPath: 'bookmarks.html'})
+      require('fs').writeFileSync(savePath, root.outerHTML)
+    })
   }
 })
