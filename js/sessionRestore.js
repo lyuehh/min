@@ -25,7 +25,7 @@ window.sessionRestore = {
     var newTask = tasks.add()
     var newSessionErrorTab = tasks.get(newTask).tabs.add({
       // url: 'https://www.qq.com'
-      url: 'https://data.questmobile.com.cn'
+      url: 'https://www.appannie.com/dashboard/home'
       // url: 'https://data.questmobile.com.cn'
       // url: 'file://' + __dirname + '/pages/sessionRestoreError/index.html?backupLoc=' + encodeURIComponent(backupSavePath)
     })
